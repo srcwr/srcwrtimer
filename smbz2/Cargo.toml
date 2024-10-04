@@ -1,0 +1,20 @@
+[package]
+name = "smbz2"
+authors = ["rtldg <rtldg@protonmail.com>"]
+description = "smbz2 clone for SRCWR (it compresses and decompresses bzip2 files)"
+license = "GPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+extshared_build_helper = { path = "../extshared_build_helper" }
+
+[dependencies]
+extshared = { path = "../extshared" }
+bzip2 = { git = "https://github.com/srcwr/bzip2-rs.git", rev = "bd66f7c", features=["static"] }
+#bzip2 = { version = "0.4.4", features = ["static"] }

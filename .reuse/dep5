@@ -1,0 +1,36 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: srcwrtimer
+Upstream-Contact: rtldg <rtldg@protonmail.com>
+Source: https://github.com/srcwr/srcwrtimer
+
+Files:
+       .cargo/config.toml
+       .editorconfig
+       .gitattributes
+       .gitignore
+       .rustfmt.toml
+       .vscode/settings.json
+       Cargo.lock
+       Cargo.toml
+       README.md
+       notes-session-uploader.txt
+       notes-timer.txt
+       rustfmt.toml
+       rust-toolchain.toml
+       closestpos/Cargo.toml
+       closestpos-rs/Cargo.toml
+       extshared/Cargo.toml
+       extshared/src/c++17.patch
+       extshared_build_helper/Cargo.toml
+       smbz2/Cargo.toml
+       srcwrf64/Cargo.toml
+       srcwrhttp/README.md
+       srcwrhttp/Cargo.toml
+       srcwrjson/Cargo.toml
+       srcwrsample/Cargo.toml
+       srcwrsyncer/Cargo.toml
+       srcwrtimer/addons/sourcemod/scripting/srcwr.json
+       srcwrtimer/addons/sourcemod/translations/srcwr.phrases.txt
+       srcwrutil/Cargo.toml
+Copyright: 2022-2024 rtldg <rtldg@protonmail.com>
+License: WTFPL

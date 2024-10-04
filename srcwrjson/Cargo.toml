@@ -1,0 +1,29 @@
+[package]
+name = "srcwrjson"
+authors = ["rtldg <rtldg@protonmail.com>"]
+description = "JSON extension for SRCWR"
+license = "GPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+extshared_build_helper = { path = "../extshared_build_helper" }
+
+[dependencies]
+extshared = { path = "../extshared" }
+smallvec = "1"
+mimalloc = { version = "*", default-features = false } #{ version = "0.1.37", features = [] } # TODO: "override"...
+
+memx = "0.1"
+
+# TODO: Look into https://github.com/google/serde_json_lenient for trailing commas & comments?
+serde_json = { version = "1.0", features = ["std", "float_roundtrip"] }
+
+#jsonpath_lib = "0.3.0"
+#ijson = "0.1.3" # less memory usage for json objects...
+#rcjson = { path = "../rcjson" }

@@ -1,0 +1,36 @@
+[package]
+name = "srcwrhttp"
+authors = ["rtldg <rtldg@protonmail.com>"]
+description = "HTTP extension for SRCWR"
+license = "GPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+extshared_build_helper = { path = "../extshared_build_helper" }
+
+[dependencies]
+extshared = { path = "../extshared" }
+mimalloc = { version = "*", default-features = false } #{ version = "0.1.37", features = [] } # TODO: "override"...
+
+serde_json = { version = "1.0", features = ["std", "float_roundtrip"] }
+
+bytes = "1.6"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "gzip", "brotli", "deflate", "multipart", "cookies", "stream"] }
+tokio-tungstenite = "0.23" # websocket library
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+crossbeam = { version = "0.8", features = ["std", "alloc"] }
+http = "1.0"
+
+anyhow = "1.0"
+# thiserror = "1.0.37"
+
+# used in reqwest_text_with_charset
+encoding_rs = "0.8"
+mime = "0.3"

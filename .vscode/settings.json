@@ -1,0 +1,16 @@
+{
+	"rust-analyzer.cargo.target": "i686-pc-windows-msvc",
+	"rust-analyzer.cargo.extraArgs": ["--release"],
+	"rust-analyzer.check.allTargets": false,
+	"rust-analyzer.checkOnSave.allTargets": false,
+	"search.exclude": {
+		"**/_build": true,
+		"**/_external": true,
+		"**/_package": true,
+		"**/target": true
+	},
+	"files.associations": {
+		"*.inc": "cpp",
+		"*.sp": "cpp"
+	}
+}

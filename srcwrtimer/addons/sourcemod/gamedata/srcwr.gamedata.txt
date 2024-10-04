@@ -1,0 +1,99 @@
+// SPDX-License-Identifier: WTFPL
+
+"Games"
+{
+	"#default"
+	{
+		"Keys"
+		{
+			"IGameMovement" "GameMovement001"
+		}
+		"Signatures"
+		{
+			"CreateInterface_Server"
+			{
+				"library"   "server"
+				"windows"   "@CreateInterface"
+				"linux"     "@CreateInterface"
+			}
+
+			"CreateInterface_Engine"
+			{
+				"library"   "engine"
+				"windows"   "@CreateInterface"
+				"linux"     "@CreateInterface"
+			}
+		}
+		"Offsets"
+		{
+			"server_os"
+			{
+				"windows"   "1"
+				"linux"     "2"
+			}
+			"ProcessMovement"
+			{
+				"windows"   "1"
+				"linux"     "2"
+			}
+		}
+	}
+	"cstrike"
+	{
+		"Keys"
+		{
+			"detect_client_os_windows_cvar" "windows_speaker_config"
+		}
+		"Offsets"
+		{
+			// Search "#Ignore_Radio", go to reference, grab offset right above.
+			"CCSPlayer::m_bIgnoreRadio"
+			{
+				"windows"   "4388"
+				"linux"     "4408"
+			}
+		}
+		"Signatures"
+		{
+			// Search "cs_ragdoll"
+			"CCSPlayer::CreateRagdollEntity()"
+			{
+				"library" "server"
+				"windows" "\x55\x8B\xEC\x83\xEC\x30\x89\x4D\x2A\x8B\x4D"
+				"linux"   "@_ZN9CCSPlayer19CreateRagdollEntityEv"
+			}
+
+			// search string: "remove 0x%p: %s-%s" to find PhysicsRemoveToucher.
+			// Find PhysicsCheckForEntityUntouch by checking the functions that call PhysicsRemoveToucher.
+			"PhysicsCheckForEntityUntouch"
+			{
+				"library" "server"
+				"windows" "\x55\x8B\xEC\x83\xEC\x08\x56\x8B\xF1\x8B\x86"
+				"linux"   "@_ZN11CBaseEntity28PhysicsCheckForEntityUntouchEv"
+			}
+
+			// Search ".dx80.vtx" and it's probably the first reference to that string.
+			"CDownloadListGenerator::OnResourcePrecachedFullPath"
+			{
+				"library" "engine"
+				"windows" "\x55\x8B\xEC\x81\xEC\x04\x01\x00\x00\x56\x8B\x75\x2A\x57\x6A\x5C"
+				"linux"   ""
+			}
+
+			"CDownloadListGenerate::SetStringTable"
+			{
+				"library" "engine"
+				"windows" "\x55\x8B\xEC\x81\xEC\x0C\x03\x00\x00\x8B\x45"
+				"linux"   ""
+			}
+
+			// Search "maps\%s.nav"
+			"CNavMesh::Load"
+			{
+				"library" "server"
+				"windows" "\x55\x8B\xEC\x81\xEC\x80\x01\x00\x00\x53"
+				"linux"   ""
+			}
+		}
+	}
+}

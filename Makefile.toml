@@ -1,0 +1,364 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2022-2024 rtldg <rtldg@protonmail.com>
+# This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
+
+# Some documentation:
+#   https://sagiegurari.github.io/cargo-make/
+#   https://github.com/sagiegurari/duckscript
+#   https://github.com/sagiegurari/duckscript/blob/master/docs/sdk.md
+
+# Rust does not support Windows 7 since 1.78 (May 2024).
+#
+# They decided to move it to [Tier 3](https://doc.rust-lang.org/nightly/rustc/platform-support.html#tier-3) as i686-win7-windows-msvc.
+#   Maybe binaries available one day? https://blog.rust-lang.org/2024/02/26/Windows-7.html
+#     "Once these targets reach Tier 2 status, they will be available to use via rustup."
+#
+# I don't care about non-NFOservers Windows game server providers.
+# NFOservers appears to use a Windows 10 -based server OS & build number 14393 which is probably Windows Server 2016.
+#
+# Windows 7 BTFO
+
+
+[config]
+default_to_workspace = false
+
+[tasks.full.linux]
+dependencies = [
+	"rustup-linux",
+	"clone-alliedmodders",
+	"install-sm-bins",
+	"install-zig",
+	"linux",
+	"copy-srcwrtimer",
+	"copy-extensions",
+	"compile-srcwrtimer-scripts",
+]
+
+[tasks.full.windows]
+dependencies = [
+	"rustup-linux",
+	"rustup-msvc",
+	"clone-alliedmodders",
+	"install-sm-bins",
+	"install-zig",
+	"linux",
+	"msvc",
+	"copy-srcwrtimer",
+	"copy-extensions",
+	"compile-srcwrtimer-scripts",
+]
+
+[tasks.x]
+dependencies = [
+	"msvc",
+	"copy-srcwrtimer",
+	"copy-extensions",
+	"compile-srcwrtimer-scripts",
+]
+
+[tasks.y]
+dependencies = [
+	"msvc",
+	"copy-srcwrtimer",
+	"copy-extensions",
+]
+
+[tasks.smmm]
+dependencies = [
+	"copy-srcwrtimer",
+	"copy-extensions",
+	"compile-srcwrtimer-scripts",
+]
+
+
+################################################################################
+## asdf
+################################################################################
+
+[env]
+HOSTOSPLAIN = { source = "${OS}", default_value = "linux", mapping = {"Windows_NT" = "windows"} }
+EXTERNALDIR="${CARGO_MAKE_WORKING_DIRECTORY}/_external"
+PACKAGEDIR="${CARGO_MAKE_WORKING_DIRECTORY}/_package"
+
+# Problem with master (as of 2024-09-30):
+#  `zig: error: version '.2.26' in target triple 'x86-unknown-linux-gnu.2.26' is invalid`
+#  Probably related: https://github.com/ziglang/zig/issues/16630
+#  Back to "0.13.0" for now...
+ZIGDLVER="0.13.0" #"master"
+ZIGEXT = { source = "${OS}", default_value = "tar.xz", mapping = {"Windows_NT" = "zip"} }
+CARGO_ZIGBUILD_ZIG_PATH="${EXTERNALDIR}/zig-${HOSTOSPLAIN}/zig"
+HOSTZIGTOOLCHAIN = { source = "${OS}", default_value = "x86_64-linux", mapping = {"Windows_NT" = "x86_64-windows"} }
+
+SMBINURLFOLDER="1.11"
+SMBINVER="sourcemod-1.11.0-git6968-${HOSTOSPLAIN}" # Windows Defender thinks 6964 is malware...
+SMBINEXT = { source = "${OS}", default_value = "tar.gz", mapping = {"Windows_NT" = "zip"} }
+SPCOMP = { source = "${OS}", default_value = "spcomp64", mapping = {"Windows_NT" = "spcomp"} }
+
+################################################################################
+## asdf
+################################################################################
+
+[tasks.extract-sm-bins.windows]
+condition = { files_not_exist = ["${EXTERNALDIR}/${SMBINVER}"] }
+script_runner = "@rust"
+script = '''
+//! ```cargo
+//! [dependencies]
+//! zip-extract = "0.1.3"
+//! ```
+use std::env;
+use std::fs::File;
+use std::path::Path;
+use std::io::BufReader;
+fn main() {
+	let path = format!("{}/{}.zip", env::var("EXTERNALDIR").unwrap(), env::var("SMBINVER").unwrap());
+	let f = File::open(&path).unwrap();
+	let mut reader = BufReader::new(f);
+    zip_extract::extract(reader, Path::new(&path[..path.len()-4]), true).unwrap();
+}
+'''
+
+[tasks.extract-sm-bins.linux]
+condition = { files_not_exist = ["${EXTERNALDIR}/${SMBINVER}"] }
+script_runner = "@duckscript"
+script = '''
+fn do_everything
+	cd "${EXTERNALDIR}"
+	exec tar -xf "${SMBINVER}.${SMBINEXT}" "--one-top-level=${SMBINVER}"
+end
+do_everything
+'''
+
+[tasks.download-sm-bins]
+condition = { files_not_exist = ["${EXTERNALDIR}/${SMBINVER}.${SMBINEXT}"] }
+script_runner = "@duckscript"
+script = '''
+fn do_everything
+	url = set "https://sm.alliedmods.net/smdrop/${SMBINURLFOLDER}/${SMBINVER}.${SMBINEXT}"
+	echo "downloading ${url}"
+	res = wget -O "${EXTERNALDIR}/${SMBINVER}.${SMBINEXT}" ${url}
+	echo "downloaded to ${EXTERNALDIR}/${SMBINVER}.${SMBINEXT}"
+end
+do_everything
+'''
+
+[tasks.install-sm-bins]
+dependencies = [
+	"download-sm-bins",
+	"extract-sm-bins",
+]
+
+################################################################################
+## asdf
+################################################################################
+
+[tasks.copy-srcwrtimer]
+script_runner = "@duckscript"
+script = '''
+fn do_everything
+	rm -r ${PACKAGEDIR}/srcwrtimer
+	cp ${CARGO_MAKE_WORKING_DIRECTORY}/srcwrtimer ${PACKAGEDIR}
+end
+do_everything
+'''
+
+[tasks.compile-srcwrtimer-scripts]
+script_runner = "@duckscript"
+script = '''
+fn do_everything
+	srcwrsm = set "${PACKAGEDIR}/srcwrtimer/addons/sourcemod"
+	smscripting = set "${EXTERNALDIR}/${SMBINVER}/addons/sourcemod/scripting"
+	plugins = glob_array ${srcwrsm}/scripting/*.sp
+
+	for path in ${plugins}
+		filesize = get_file_size ${path}
+		if greater_than ${filesize} 0
+			basesp = basename ${path}
+			basesmx = replace ${basesp} .sp .smx
+			echo                 "${smscripting}/${SPCOMP} -i ${smscripting}/include -i ${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}"
+			exec --fail-on-error  ${smscripting}/${SPCOMP} -i ${smscripting}/include -i ${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}
+		end
+	end
+end
+do_everything
+'''
+
+################################################################################
+## asdf
+################################################################################
+
+[tasks.copy-extensions]
+script_runner = "@duckscript"
+script = '''
+extdir = set "${PACKAGEDIR}/srcwrtimer/addons/sourcemod/extensions"
+builddir = set "${CARGO_MAKE_WORKING_DIRECTORY}/_build"
+
+fn copy_ext
+	rm "${extdir}/${1}.ext.dll"
+	rm "${extdir}/${1}.pdb"
+	rm "${extdir}/${1}.ext.so"
+	if is_path_exists "${builddir}/i686-pc-windows-msvc/release/${1}.dll"
+		cp "${builddir}/i686-pc-windows-msvc/release/${1}.dll"       "${extdir}/${1}.ext.dll"
+		cp "${builddir}/i686-pc-windows-msvc/release/${1}.pdb"       "${extdir}/${1}.pdb"
+	end
+	if is_path_exists "${builddir}/i686-unknown-linux-gnu/release/lib${1}.so"
+		cp "${builddir}/i686-unknown-linux-gnu/release/lib${1}.so"   "${extdir}/${1}.ext.so"
+	end
+end
+
+members = split "${CARGO_MAKE_CRATE_WORKSPACE_MEMBERS}" ","
+for member in ${members}
+	copy_ext ${member}
+end
+release ${handle}
+'''
+
+################################################################################
+## asdf
+################################################################################
+
+[tasks.extract-zig.windows]
+condition = { files_not_exist = ["${EXTERNALDIR}/zig-${HOSTOSPLAIN}"] }
+script_runner = "@rust"
+script = '''
+//! ```cargo
+//! [dependencies]
+//! zip-extract = "0.1.3"
+//! ```
+use std::env;
+use std::fs::File;
+use std::path::Path;
+use std::io::BufReader;
+fn main() {
+	let path = format!("{}/zig-{}.zip", env::var("EXTERNALDIR").unwrap(), env::var("HOSTOSPLAIN").unwrap());
+	let f = File::open(&path).unwrap();
+	let mut reader = BufReader::new(f);
+	zip_extract::extract(reader, Path::new(&path[..path.len()-4]), true).unwrap();
+}
+'''
+
+[tasks.download-zig]
+condition = { files_not_exist = ["${EXTERNALDIR}/zig-${HOSTOSPLAIN}.${ZIGEXT}"] }
+script_runner = "@duckscript"
+script = '''
+fn do_everything
+	response = wget https://ziglang.org/download/index.json
+	object = json_parse --collection ${response}
+	thingy = map_get ${object} ${ZIGDLVER}
+	asdf = map_get ${thingy} ${HOSTZIGTOOLCHAIN}
+	tarball = map_get ${asdf} tarball
+	echo "downloading ${tarball}"
+	res = wget -O "${EXTERNALDIR}/zig-${HOSTOSPLAIN}.${ZIGEXT}" ${tarball}
+	echo "downloaded to ${EXTERNALDIR}/zig-${HOSTOSPLAIN}.${ZIGEXT}"
+end
+do_everything
+'''
+
+[tasks.extract-zig.linux]
+condition = { files_not_exist = ["${EXTERNALDIR}/zig-${HOSTOSPLAIN}"] }
+script_runner = "@duckscript"
+script = '''
+fn do_everything
+	cd "${EXTERNALDIR}"
+	exec tar -xf "zig-${HOSTOSPLAIN}.tar.xz"
+	# fuck me. TODO: this zig linux path shit because it's different than HOSTZIGTOOLCHAIN
+	mv "zig-linux-x86_64-${ZIGDLVER}" "zig-${HOSTOSPLAIN}"
+end
+do_everything
+'''
+
+[tasks.install-zig]
+dependencies = [
+	"download-zig",
+	"extract-zig",
+]
+
+################################################################################
+## asdf
+################################################################################
+
+[tasks.linux]
+#toolchain = "nightly"
+command = "cargo"
+args = ["zigbuild", "--release", "--target", "i686-unknown-linux-gnu.2.26"]
+
+[tasks.msvc]
+#toolchain = "nightly"
+command = "cargo"
+args = ["build", "--release", "--target", "i686-pc-windows-msvc"]
+
+# TODO: xwin not quite worky...
+[tasks.msvc.linux]
+#toolchain = "nightly"
+command = "cargo"
+args = ["xwin", "build", "--xwin-arch", "x86", "--release", "--target", "i686-pc-windows-msvc"]
+
+################################################################################
+## asdf
+################################################################################
+
+# TODO: Was/is nightly required for linux builds?
+[tasks.rustup-linux]
+toolchain = "nightly"
+command = "rustup"
+args = ["target", "add", "i686-unknown-linux-gnu"]
+
+[tasks.rustup-msvc]
+toolchain = "nightly"
+command = "rustup"
+args = ["target", "add", "i686-pc-windows-msvc"]
+
+################################################################################
+## asdf
+################################################################################
+
+[tasks.clone-sm]
+condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/sourcemod"] }
+script_runner = "@duckscript"
+script = '''
+fn do_everything
+	exec git clone -b 1.11-dev --recursive https://github.com/alliedmodders/sourcemod "${EXTERNALDIR}/alliedmodders/sourcemod"
+	cd "${EXTERNALDIR}/alliedmodders/sourcemod/public/amtl/"
+	exec git apply --whitespace=fix ../../../../../extshared_build_helper/src/c++23-for-amtl.patch
+	cd "${EXTERNALDIR}/alliedmodders/sourcemod/sourcepawn/third_party/amtl/"
+	exec git apply --whitespace=fix ../../../../../../extshared_build_helper/src/c++23-for-amtl.patch
+end
+do_everything
+'''
+
+
+# TODO: mmsource-1.12
+[tasks.clone-mm]
+condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/mmsource-1.11"] }
+command = "git"
+args = ["clone", "https://github.com/alliedmodders/metamod-source", "${EXTERNALDIR}/alliedmodders/mmsource-1.11", "-b", "1.11-dev"]
+
+
+# TODO: Add update-hl2sdk which does `git remote update` for the proxy repo and then `git pull` in  -css
+
+[tasks.clone-hl2sdk]
+condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/hl2sdk-proxy-repo"] }
+command = "git"
+args = ["clone", "--mirror", "https://github.com/alliedmodders/hl2sdk", "${EXTERNALDIR}/alliedmodders/hl2sdk-proxy-repo"]
+
+[tasks.clone-hl2sdk-css]
+condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/hl2sdk-css"] }
+script_runner = "@duckscript"
+script = '''
+fn do_everything
+	exec git clone "${EXTERNALDIR}/alliedmodders/hl2sdk-proxy-repo" "${EXTERNALDIR}/alliedmodders/hl2sdk-css" -b css
+	cd "${EXTERNALDIR}/alliedmodders/hl2sdk-css/"
+	exec git apply --whitespace=fix ../../../extshared_build_helper/src/c++17-for-hl2sdk-css.patch
+end
+do_everything
+'''
+
+
+[tasks.clone-alliedmodders]
+dependencies = [
+	"clone-sm",
+	"clone-mm",
+	"clone-hl2sdk",
+	"clone-hl2sdk-css",
+	#"clone-hl2sdk-tf2", # TODO: lol
+]

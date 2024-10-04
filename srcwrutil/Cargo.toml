@@ -1,0 +1,21 @@
+[package]
+name = "srcwrutil"
+authors = ["rtldg <rtldg@protonmail.com>"]
+description = "Util extension for SRCWR"
+license = "GPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+extshared_build_helper = { path = "../extshared_build_helper" }
+
+[dependencies]
+extshared = { path = "../extshared" }
+hex = "0.4"
+sha1 = "0.10"
+smol_str = "0.2"

@@ -1,0 +1,41 @@
+[workspace]
+
+resolver = "2" # shrug
+
+members = [
+	"closestpos",
+	#"closestpos-rs",
+	"extshared",
+	"extshared_build_helper",
+	"smbz2",
+	#"srcwrf64",
+	"srcwrhttp",
+	"srcwrjson",
+	#"srcwrreplayman",
+	"srcwrsample",
+	#"srcwrsyncer",
+	"srcwrutil",
+]
+# Don't build these by default... (because they're just crates for extensions)
+exclude = [
+	"extshared",
+	"extshared_build_helper",
+]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+# TODO: Setup homepage url to go to each extension's folder / README?
+homepage = "https://github.com/srcwr/srcwrtimer"
+repository = "https://github.com/srcwr/srcwrtimer"
+
+[profile.release]
+lto = true
+incremental = false
+
+[patch.crates-io]
+#git2-curl = { path = "../git2-rs/git2-curl" }
+#git2 = { path = "../git2-rs" }
+
+#bzip2 = { path = "../bzip2-rs" }
+

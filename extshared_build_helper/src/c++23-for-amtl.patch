@@ -1,0 +1,22 @@
+From 6969677d6393642fc33db27b712a937d808f6642 Mon Sep 17 00:00:00 2001
+From: Nukoooo <89713806+Nukoooo@users.noreply.github.com>
+Date: Tue, 13 Feb 2024 01:56:21 +0800
+Subject: [PATCH] Update am-string.h
+
+---
+ amtl/am-string.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/amtl/am-string.h b/amtl/am-string.h
+index e5b2464..d5d2178 100644
+--- a/amtl/am-string.h
++++ b/amtl/am-string.h
+@@ -181,7 +181,7 @@ StringPrintfVa(const char* fmt, va_list ap)
+     size_t len;
+     std::unique_ptr<char[]> result = detail::SprintfArgsImpl(&len, fmt, ap);
+     if (!result)
+-        return nullptr;
++        return "";
+     return std::string(result.get(), len);
+ }
+ 

@@ -1,0 +1,17 @@
+
+/_build
+/_package
+/_external
+
+/target
+/debug
+/release
+
+*secret*
+
+*.smx
+*.dll
+*.exe
+*.so
+*.pdb
+*.zip

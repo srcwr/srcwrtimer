@@ -1,0 +1,6 @@
+[toolchain]
+# love me some nightly
+channel = "nightly"
+#profile = "default" # TODO: release?
+# Might break things when building on Linux...
+#host = "i686-pc-windows-msvc"

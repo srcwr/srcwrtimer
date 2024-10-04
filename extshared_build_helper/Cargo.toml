@@ -1,0 +1,13 @@
+[package]
+name = "extshared_build_helper"
+authors = ["rtldg <rtldg@protonmail.com>"]
+description = "Build shared extension code for SRCWR"
+license = "GPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[dependencies]
+cc = { version = "1.0", features = ["parallel"] }
+regex = "1"

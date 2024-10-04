@@ -1,0 +1,19 @@
+[package]
+name = "srcwrf64"
+authors = ["rtldg <rtldg@protonmail.com>"]
+description = "F64/double extension for sourcemod"
+license = "GPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+extshared_build_helper = { path = "../extshared_build_helper" }
+
+[dependencies]
+extshared = { path = "../extshared" }
+ryu = "1.0"

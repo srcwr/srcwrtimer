@@ -1,0 +1,12 @@
+[package]
+name = "extshared"
+authors = ["rtldg <rtldg@protonmail.com>"]
+description = "Shared extension code for SRCWR"
+license = "GPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[dependencies]
+simdutf8 = "0.1"

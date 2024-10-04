@@ -1,0 +1,18 @@
+[package]
+name = "closestpos"
+authors = ["rtldg <rtldg@protonmail.com>"]
+description = "(SRCWR PORT) Provides a type that be used to quickly find the closest point to the input position."
+license = "GPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+extshared_build_helper = { path = "../extshared_build_helper" }
+
+[dependencies]
+extshared = { path = "../extshared" }

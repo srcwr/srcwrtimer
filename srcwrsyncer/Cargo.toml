@@ -1,0 +1,29 @@
+[package]
+name = "srcwrsyncer"
+authors = ["rtldg <rtldg@protonmail.com>"]
+description = "Git repository syncing extension for SRCWR"
+license = "GPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+extshared_build_helper = { path = "../extshared_build_helper" }
+
+[dependencies]
+extshared = { path = "../extshared" }
+parking_lot = "0.12.1"
+libc = "0.2.126"
+lazy_static = "1.4.0"
+
+#curl = { version = "0.4.33", default-features = false, features = ["rustls", "static-curl"] }
+git2 =      { path = "../../git2-rs", default-features = false, features = ["vendored-libgit2"] }
+#git2-curl = { path = "../../git2-rs/git2-curl" }
+
+hyper = { version = "0.14", features = ["client", "http1", "http2", "tcp"] }
+hyper-rustls = { version = "0.23", default-features = false, features = ["webpki-tokio", "tls12", "http2"] }
+git2-hyper = { path = "../../git2-hyper", default-features = false, features = ["http2", "rustls"] }
