@@ -158,6 +158,8 @@ script = '''
 fn do_everything
 	rm -r ${PACKAGEDIR}/srcwrtimer
 	cp ${CARGO_MAKE_WORKING_DIRECTORY}/srcwrtimer ${PACKAGEDIR}
+	# grrr angry
+	mkdir ${PACKAGEDIR}/srcwrtimer/addons/sourcemod/plugins
 end
 do_everything
 '''
