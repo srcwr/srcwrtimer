@@ -14,13 +14,14 @@ jobs:
         shell: bash
         run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA::7}" >> $GITHUB_ENV
       - uses: actions/checkout@v4
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@v1
       - name: Install the cargo bins we use...
         shell: pwsh
         run: |
-          iex (iwr "https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.ps1").Content
-          cargo binstall cargo-make
-          cargo binstall cargo-zigbuild
-          cargo binstall rust-script
+          cargo binstall -y cargo-make
+          cargo binstall -y cargo-zigbuild
+          cargo binstall -y rust-script
       #- name: Install cargo-make
       #  run: cargo install --force cargo-make
       # This is `cargo make full` but turned into steps so you can have better progress visibility
