@@ -27,25 +27,26 @@ jobs:
         run: |
           cargo binstall -y cargo-make
           cargo binstall -y cargo-zigbuild
-          cargo binstall -y rust-script
-      #- name: Install cargo-make
-      #  run: cargo install --force cargo-make
       # This is `cargo make full` but turned into steps so you can have better progress visibility
-      - name: Do the Rustup stuff
+      - name: Install Rust toolchains
         run: |
           cargo make rustup-linux
           cargo make rustup-msvc
-      - name: Setup alliedmodders things
-        run: |
-          cargo make clone-alliedmodders
-          cargo make install-sm-bins
-      - name: Setup Zig things
-        run: cargo make install-zig
+      - name: Clone alliedmodders repositories
+        run: cargo make clone-alliedmodders
+      - name: Setup SourcePawn Compiler
+        uses: rumblefrog/setup-sp@v1.2.4
+        with:
+          version: '1.11.6968' ### UPDATE Makefile.toml whenever this is updated.
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: '0.13.0' ### UPDATE Makefile.toml whenever this is updated.
       - name: Build extensions for Linux
         run: cargo make linux
       - name: Build extensions for Windows/MSVC
         run: cargo make msvc
-      - name: Copy things over
+      - name: Copy things to _package
         run: |
           cargo make copy-srcwrtimer
           cargo make copy-extensions

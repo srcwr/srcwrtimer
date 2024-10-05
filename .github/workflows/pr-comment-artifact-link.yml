@@ -1,4 +1,4 @@
-name: Comment on pull request
+name: Post artifact link in pull request
 on:
   workflow_run:
     workflows: ['Build everything']
