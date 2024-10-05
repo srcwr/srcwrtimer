@@ -171,22 +171,20 @@ script = '''
 fn do_everything
 	srcwrsm = set "${PACKAGEDIR}/srcwrtimer/addons/sourcemod"
 	smscripting = set "${EXTERNALDIR}/${SMBINVER}/addons/sourcemod/scripting"
-	myspcomp = set "${smscripting}/${SPCOMP}"
-	sminclude = set "-i${smscripting}/include"
 	plugins = glob_array ${srcwrsm}/scripting/*.sp
-
-	if eq ${CI} "true"
-		myspcomp = set "spcomp"
-		sminclude = set ""
-	end
 
 	for path in ${plugins}
 		filesize = get_file_size ${path}
 		if greater_than ${filesize} 0
 			basesp = basename ${path}
 			basesmx = replace ${basesp} .sp .smx
-			echo                 "${myspcomp} ${sminclude} -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}"
-			exec --fail-on-error  ${myspcomp} ${sminclude} -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}
+			if eq ${CI} "true"
+				echo                 "spcomp -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}"
+				exec --fail-on-error  spcomp -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}
+			else
+				echo                 "${smscripting}/${SPCOMP} -i${smscripting}/include -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}"
+				exec --fail-on-error  ${smscripting}/${SPCOMP} -i${smscripting}/include -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}
+			end
 		end
 	end
 end
