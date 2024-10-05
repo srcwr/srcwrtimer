@@ -1,0 +1,44 @@
+name: Build everything
+
+on: [push, pull_request, workflow_dispatch]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_everything:
+    runs-on: windows-latest
+
+    steps:
+      - name: Prepare env
+        shell: bash
+        run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA::7}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - name: Install cargo-make
+        run: cargo install --force cargo-make
+      # This is `cargo make full` but turned into steps so you can have better progress visibility
+      - name: Do the Rustup stuff
+        run: |
+          cargo make rustup-linux
+          cargo make rustup-msvc
+      - name: Setup alliedmodders things
+        run: |
+          cargo make clone-alliedmodders
+          cargo make install-sm-bins
+      - name: Setup Zig things
+        run: cargo make install-zig
+      - name: Build extensions for Linux
+        run: cargo make linux
+      - name: Build extensions for Windows/MSVC
+        run: cargo make msvc
+      - name: Copy things over
+        run: |
+          cargo make copy-srcwrtimer
+          cargo make copy-extensions
+      - name: Build plugins
+        run: cargo make compile-srcwrtimer-scripts
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: srcwrtimer-${{ github.head_ref || github.ref_name }}-${{ env.GITHUB_SHA_SHORT }}
+          path: _package/srcwrtimer
