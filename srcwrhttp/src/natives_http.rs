@@ -37,7 +37,7 @@ pub extern "C" fn rust_handle_destroy_SRCWRHTTPReq(object: *mut SRCWRHTTPReq) {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_handle_size_SRCWRHTTPReq(object: &SRCWRHTTPReq, size: &mut u32) -> bool {
-	let mut s = std::mem::size_of::<SRCWRHTTPReq>();
+	let mut s = size_of::<SRCWRHTTPReq>();
 	if let Some(headers) = &object.headers {
 		for (key, value) in headers.iter() {
 			s += value.as_bytes().len() + key.as_str().len(); // not strictly accurate but none of this is anyway...
@@ -81,7 +81,7 @@ pub extern "C" fn rust_handle_destroy_SRCWRHTTPResp(object: *mut SRCWRHTTPResp) 
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_handle_size_SRCWRHTTPResp(object: &SRCWRHTTPResp, size: &mut u32) -> bool {
-	let mut s = std::mem::size_of::<SRCWRHTTPResp>();
+	let mut s = size_of::<SRCWRHTTPResp>();
 	for (key, value) in object.headers.iter() {
 		s += value.as_bytes().len() + key.as_str().len(); // not strictly accruate but none of this is anyway...
 	}

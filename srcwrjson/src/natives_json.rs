@@ -50,13 +50,13 @@ pub extern "C" fn rust_handle_destroy_SRCWRJSON(object: *mut SRCWRJSON) {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_handle_size_SRCWRJSON(object: &SRCWRJSON, size: &mut u32) -> bool {
-	*size = std::mem::size_of::<SRCWRJSON>() as u32 + recursive_size_calc(&object.v) as u32; //stacker::grow(1 * 1024 * 1025, || recursive_size_calc(&obj.v)) as u32;
+	*size = size_of::<SRCWRJSON>() as u32 + recursive_size_calc(&object.v) as u32; //stacker::grow(1 * 1024 * 1025, || recursive_size_calc(&obj.v)) as u32;
 	true
 }
 
 fn recursive_size_calc(value: &Value) -> usize {
 	// PLEASE make a recursive json value that blows up the stack IT WOULD BE SO FUNNY
-	std::mem::size_of::<SRCWRJSON>()
+	size_of::<SRCWRJSON>()
 		+ match value {
 			Value::String(s) => s.capacity(),
 			Value::Array(v) => v.iter().fold(0, |a, x| a + recursive_size_calc(x)),

@@ -72,7 +72,7 @@ pub extern "C" fn rust_handle_destroy_SRCWRWebsocket(streamid: u32) {
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_handle_size_SRCWRWebsocket(_streamid: u32, size: &mut u32) -> bool {
 	// there's no nice way to calculate this so we'll just use a placeholder that's greater than size_of<WebsocketStream<MaybeTlsStream>>
-	*size = std::mem::size_of::<SRCWRWebsocket>() as u32 + 512;
+	*size = size_of::<SRCWRWebsocket>() as u32 + 512;
 	true
 }
 
@@ -194,7 +194,7 @@ pub extern "C" fn rust_handle_size_SRCWRWebsocketMsg(
 	object: &mut SRCWRWebsocketMsg,
 	size: &mut u32,
 ) -> bool {
-	*size = (object.text.capacity() + std::mem::size_of::<SRCWRWebsocketMsg>()) as u32;
+	*size = (object.text.capacity() + size_of::<SRCWRWebsocketMsg>()) as u32;
 	true
 }
 
