@@ -142,12 +142,10 @@ public void Shavit_OnCheckpointCacheLoaded(int client, cp_cache_t cache, int ind
 	}
 }
 
-#if 0
 public Action Shavit_OnStart(int client, int track)
 {
 	gF_PunishTime[client] = 0.0;
 }
-#endif
 #endif
 
 public void Hook_GroundEntChangedPost(int client)

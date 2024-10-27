@@ -140,10 +140,9 @@ public void OnPluginStart()
 	SRCWR_SetDefaultPlayerSettings("eventqueue", "{\"debug\": false}");
 	gJ_Settings[0].ToServer();
 
-#if 0
+#if defined(DO_LARGE_FILE)
 	SRCWRJSON json = SRCWRJSON.FromFile("large-file.json");
-#if 0
-#if 0
+#if defined(DO_LARGE_FILE_PROFILING)
 	Profiler profiler = new Profiler();
 	profiler.Start();
 	for (int i = 0; i < 10000; ++i)
@@ -153,7 +152,6 @@ public void OnPluginStart()
 	}
 	profiler.Stop();
 	PrintToServer("time = %f", profiler.Time);
-#if 0
 	profiler.Start();
 	for (int i = 0; i < 10000; ++i)
 	{
@@ -162,8 +160,7 @@ public void OnPluginStart()
 	}
 	profiler.Stop();
 	PrintToServer("time2 = %f", profiler.Time);
-#endif
-#endif
+#endif // defined(DO_LARGE_FILE_PROFILING)
 	//PrintToServer("has2 = %d", json.Has(0, "/0/actor/%s %N", "idddd", 2));
 	SRCWRJSON fromstr = SRCWRJSON.FromString1("{\"t333est\": 5}");
 	bool b = json.Set(fromstr, 0, "/%d/actor/test222", 3);
@@ -185,8 +182,7 @@ public void OnPluginStart()
 		}
 	}
 	delete keys;
-#endif
-#endif
+#endif // 1
 	delete json;
 	json = SRCWRJSON.FromFile("test.json");
 	any myi64[2];
