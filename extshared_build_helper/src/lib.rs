@@ -206,7 +206,9 @@ pub fn link_sm_detours(mainbuild: &mut cc::Build) {
 	// something with .flag("stdverisonhere") maybe...
 	let mut zydis = cc::Build::new();
 	slurp_folder(&mut zydis, &format!("{}/public/safetyhook/zydis", sm));
-	zydis.include(format!("{}/public/safetyhook/zydis", sm));
+	zydis
+		.include(format!("{}/public/safetyhook/zydis", sm))
+		.flag_if_supported("-Wno-unused");
 	zydis.compile("zydis_and_shit");
 
 	let mut detours = cc::Build::new();
