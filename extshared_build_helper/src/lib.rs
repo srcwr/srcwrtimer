@@ -193,37 +193,47 @@ pub fn smext_hl2sdk_for_good_games(build: &mut cc::Build, sdk_name: &str, sdk_id
 pub fn link_sm_detours(mainbuild: &mut cc::Build) {
 	let sm =
 		std::env::var("SOURCEMOD").unwrap_or("../_external/alliedmodders/sourcemod".to_string());
-	let target_windows = std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows";
+	//let target_windows = std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows";
+	let like_msvc = mainbuild.get_compiler().is_like_msvc();
 
+	mainbuild
+		.include(format!("{}/public/CDetour", sm))
+		.include(format!("{}/public/safetyhook/include", sm));
+	// we also need to link CDetour/detours.cpp
 	slurp_folder(mainbuild, &format!("{}/public/CDetour", sm));
 
-	let mut detours_build = cc::Build::new();
-	detours_build
-		.include(format!("{}/public", sm))
+	// zydis needs to build as a C lib because fuck idk why .file() doesn't like to work... ugh
+	// something with .flag("stdverisonhere") maybe...
+	let mut zydis = cc::Build::new();
+	slurp_folder(&mut zydis, &format!("{}/public/safetyhook/zydis", sm));
+	zydis.include(format!("{}/public/safetyhook/zydis", sm));
+	zydis.compile("zydis_and_shit");
+
+	let mut detours = cc::Build::new();
+	detours
+		.cpp(true)
+		.include(format!("{}/public/safetyhook/include", sm))
+		.include(format!("{}/public/safetyhook/zydis", sm))
 		.flag_if_supported("-Wno-sign-compare");
-	if target_windows {
-		detours_build
-			.define("_CRT_SECURE_NO_WARNINGS", None)
-			.define("WIN32", None)
-			.define("_WINDOWS", None);
+	slurp_folder(&mut detours, &format!("{}/public/safetyhook/src", sm));
+
+	if like_msvc {
+		detours
+			.flag("/std:c++latest") // /std:c++23 doesn't exist yet!! crazy! TODO: periodically check this https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version
+			.flag("/permissive-")
+			// C++ stack unwinding & extern "C" don't throw...
+			.flag("/EHsc");
 	} else {
-		detours_build
-			.define("HAVE_STRING_H", "1")
-			.define("_LINUX", None)
-			.define("POSIX", None);
+		detours.flag("-std=c++23");
 	}
 
-	slurp_folder(&mut detours_build, &format!("{}/public/asm", sm));
-	slurp_folder(&mut detours_build, &format!("{}/public/libudis86", sm));
-	detours_build.compile("detours_and_shit");
+	detours.compile("safetyhook_and_shit");
 }
 
 pub fn smext_build() -> cc::Build {
 	let sm =
 		std::env::var("SOURCEMOD").unwrap_or("../_external/alliedmodders/sourcemod".to_string());
-	// TODO: mmsource-1.12
-	let mm =
-		std::env::var("METAMOD").unwrap_or("../_external/alliedmodders/mmsource-1.11".to_string());
+	let mm = std::env::var("METAMOD").unwrap_or("../_external/alliedmodders/mmsource".to_string());
 
 	println!("cargo:rerun-if-changed=../extshared/src/coreident.cpp");
 	println!("cargo:rerun-if-changed=../extshared/src/coreident.hpp");

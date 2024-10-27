@@ -22,7 +22,7 @@ serde_json = { version = "1.0", features = ["std", "float_roundtrip"] }
 
 bytes = "1.6"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "gzip", "brotli", "deflate", "multipart", "cookies", "stream"] }
-tokio-tungstenite = "0.23" # websocket library
+tokio-tungstenite = "0.24" # websocket library
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 crossbeam = { version = "0.8", features = ["std", "alloc"] }

@@ -89,8 +89,9 @@ ZIGEXT = { source = "${OS}", default_value = "tar.xz", mapping = {"Windows_NT" =
 CARGO_ZIGBUILD_ZIG_PATH = { source = "${CI}", default_value = "${EXTERNALDIR}/zig-${HOSTOSPLAIN}/zig", mapping = {"true" = "zig"} }
 HOSTZIGTOOLCHAIN = { source = "${OS}", default_value = "x86_64-linux", mapping = {"Windows_NT" = "x86_64-windows"} }
 
-SMBINURLFOLDER="1.11" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
-SMBINVER="sourcemod-1.11.0-git6968-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
+MMSOURCEVER="1.11" # Not always instep with SM versions.
+SMSHORTVER="1.12" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
+SMBINVER="sourcemod-1.12.0-git7164-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
 SMBINEXT = { source = "${OS}", default_value = "tar.gz", mapping = {"Windows_NT" = "zip"} }
 SPCOMP = { source = "${OS}", default_value = "spcomp64", mapping = {"Windows_NT" = "spcomp"} }
 
@@ -135,7 +136,7 @@ condition = { files_not_exist = ["${EXTERNALDIR}/${SMBINVER}.${SMBINEXT}"], env_
 script_runner = "@duckscript"
 script = '''
 fn do_everything
-	url = set "https://sm.alliedmods.net/smdrop/${SMBINURLFOLDER}/${SMBINVER}.${SMBINEXT}"
+	url = set "https://sm.alliedmods.net/smdrop/${SMSHORTVER}/${SMBINVER}.${SMBINEXT}"
 	echo "downloading ${url}"
 	res = wget -O "${EXTERNALDIR}/${SMBINVER}.${SMBINEXT}" ${url}
 	echo "downloaded to ${EXTERNALDIR}/${SMBINVER}.${SMBINEXT}"
@@ -325,7 +326,7 @@ condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/sourcemod"] }
 script_runner = "@duckscript"
 script = '''
 fn do_everything
-	exec git clone -b 1.11-dev --recursive https://github.com/alliedmodders/sourcemod "${EXTERNALDIR}/alliedmodders/sourcemod"
+	exec git clone -b ${SMSHORTVER}-dev --recursive https://github.com/alliedmodders/sourcemod "${EXTERNALDIR}/alliedmodders/sourcemod"
 	cd "${EXTERNALDIR}/alliedmodders/sourcemod/public/amtl/"
 	exec git apply --whitespace=fix ../../../../../extshared_build_helper/src/c++23-for-amtl.patch
 	cd "${EXTERNALDIR}/alliedmodders/sourcemod/sourcepawn/third_party/amtl/"
@@ -335,11 +336,10 @@ do_everything
 '''
 
 
-# TODO: mmsource-1.12
 [tasks.clone-mm]
-condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/mmsource-1.11"] }
+condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/mmsource"] }
 command = "git"
-args = ["clone", "https://github.com/alliedmodders/metamod-source", "${EXTERNALDIR}/alliedmodders/mmsource-1.11", "-b", "1.11-dev"]
+args = ["clone", "https://github.com/alliedmodders/metamod-source", "${EXTERNALDIR}/alliedmodders/mmsource", "-b", "${MMSOURCEVER}-dev"]
 
 
 # TODO: Add update-hl2sdk which does `git remote update` for the proxy repo and then `git pull` in  -css
