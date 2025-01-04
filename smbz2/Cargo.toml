@@ -16,5 +16,5 @@ extshared_build_helper = { path = "../extshared_build_helper" }
 
 [dependencies]
 extshared = { path = "../extshared" }
-bzip2 = { git = "https://github.com/srcwr/bzip2-rs.git", rev = "bd66f7c", features=["static"] }
-#bzip2 = { version = "0.4.4", features = ["static"] }
+#bzip2 = { git = "https://github.com/srcwr/bzip2-rs.git", rev = "bd66f7c", features=["static"] }
+bzip2 = { version = "0.5", default-features = false, features = ["libbz2-rs-sys"] }

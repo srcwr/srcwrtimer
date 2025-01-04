@@ -21,6 +21,7 @@ use bytes::Bytes;
 use http::Request;
 use mimalloc::MiMalloc;
 use reqwest::header::HeaderMap;
+use tokio_tungstenite::tungstenite::Utf8Bytes;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -95,7 +96,7 @@ pub enum WsState {
 pub struct SRCWRWebsocketMsg {
 	streamid: u32,
 	state:    WsState,
-	text:     String,
+	text:     Utf8Bytes,
 }
 
 #[derive(Debug)]

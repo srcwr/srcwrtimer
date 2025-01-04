@@ -18,18 +18,18 @@ extshared_build_helper = { path = "../extshared_build_helper" }
 extshared = { path = "../extshared" }
 mimalloc = { version = "*", default-features = false } #{ version = "0.1.37", features = [] } # TODO: "override"...
 
-serde_json = { version = "1.0", features = ["std", "float_roundtrip"] }
+serde_json = { version = "1", features = ["std", "float_roundtrip"] }
 
-bytes = "1.6"
+bytes = "1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "gzip", "brotli", "deflate", "multipart", "cookies", "stream"] }
-tokio-tungstenite = "0.24" # websocket library
+tokio-tungstenite = "0.26" # websocket library
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 crossbeam = { version = "0.8", features = ["std", "alloc"] }
-http = "1.0"
+http = "1"
 
-anyhow = "1.0"
-# thiserror = "1.0.37"
+anyhow = "1"
+#thiserror = "1"
 
 # used in reqwest_text_with_charset
 encoding_rs = "0.8"

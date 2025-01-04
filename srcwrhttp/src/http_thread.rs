@@ -9,10 +9,12 @@
 
 use std::collections::HashMap;
 use std::ffi::c_char;
+use std::fmt::Write;
 use std::num::NonZeroU32;
 use std::str::FromStr;
 
 use anyhow::anyhow;
+use bytes::BytesMut;
 use extshared::*;
 use futures::SinkExt;
 use futures::StreamExt;
@@ -125,8 +127,9 @@ pub extern "C" fn rust_SRCWRWebsocket_header(
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_SRCWRWebsocket_write_json(streamid: u32, v: &mut serde_json::Value) {
-	let s = v.to_string();
-	rust_SRCWRWebsocket_write_str_inner(streamid, s);
+	let mut buf = BytesMut::new();
+	write!(&mut buf, "{}", v).unwrap();
+	rust_SRCWRWebsocket_write_str_inner(streamid, Utf8Bytes::try_from(buf.freeze()).unwrap());
 }
 
 #[unsafe(no_mangle)]
@@ -138,7 +141,7 @@ pub extern "C" fn rust_SRCWRWebsocket_write_str(
 	rust_SRCWRWebsocket_write_str_inner(streamid, s.into())
 }
 
-fn rust_SRCWRWebsocket_write_str_inner(streamid: u32, s: String) -> Option<NonZeroU32> {
+fn rust_SRCWRWebsocket_write_str_inner(streamid: u32, s: Utf8Bytes) -> Option<NonZeroU32> {
 	let object = unsafe { WSSTREAMS.as_mut().unwrap().get_mut(&streamid).unwrap() };
 	if let WsInner::Writer(w) = &mut object.inner {
 		w.send(SRCWRWebsocketMsg {
@@ -194,7 +197,7 @@ pub extern "C" fn rust_handle_size_SRCWRWebsocketMsg(
 	object: &mut SRCWRWebsocketMsg,
 	size: &mut u32,
 ) -> bool {
-	*size = (object.text.capacity() + size_of::<SRCWRWebsocketMsg>()) as u32;
+	*size = (object.text.len() + size_of::<SRCWRWebsocketMsg>()) as u32;
 	true
 }
 
@@ -228,11 +231,11 @@ async fn ws_thread(
 			if x.state == WsState::Closed {
 			  let _ = ws_stream.close(Some(tungstenite::protocol::CloseFrame {
 				code: tungstenite::protocol::frame::coding::CloseCode::Normal,
-				reason: "bye :)".into(),
+				reason: "".into(),
 			  })).await;
 			  return Ok(());
 			}
-			ws_stream.send(tungstenite::Message::Text(x.text)).await?;
+			ws_stream.send(tungstenite::Message::Text(x.text.clone())).await?;
 		  }
 		  msg = ws_stream.next() => {
 			let msg = msg.ok_or(anyhow!("Failed to read next WS message"))??;
@@ -369,13 +372,17 @@ async fn async_receiver(
 				tasks.push(tokio::spawn(async move {
 					if let Err(close_reason) = ws_thread(req, streamid, from_sp).await {
 						let _ = unsafe {
+							let mut close_reason_buf = BytesMut::new();
+							write!(&mut close_reason_buf, "{}", close_reason).unwrap();
+							let close_reason =
+								Utf8Bytes::try_from(close_reason_buf.freeze()).unwrap();
 							TO_SP
 								.as_ref()
 								.unwrap()
 								.send(ForSpForward::WsMsg(SRCWRWebsocketMsg {
 									streamid,
 									state: WsState::Closed,
-									text: close_reason.to_string(),
+									text: close_reason,
 								}))
 						};
 						// println!("Leaving ws_thread?");
