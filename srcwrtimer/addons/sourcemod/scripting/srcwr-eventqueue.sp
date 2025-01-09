@@ -19,7 +19,7 @@ public Plugin myinfo = {
 	name = "[srcwr] eventqueue",
 	author = "carnifex, rtldg, GAMMACASE",
 	description = "Fork of eventqueuefix to integrate with SRCWR.",
-	version = SRCWR_VERSION ... "-eqfix-1.3.1", // srcwr & eventqueuefix version...
+	version = SRCWR_VERSION ... "-eqfix-1.3.3", // srcwr & eventqueuefix version...
 	url = SP_URL("srcwr-eventqueue")
 };
 
@@ -373,6 +373,13 @@ public void ResolveVariantValue(Handle &params, int offset, char variantValue[25
 		{
 			int iVar = DHookGetParamObjectPtrVar(params, offset, 0, ObjectValueType_Int);
 			IntToString(iVar, variantValue, sizeof(variantValue));
+		}
+
+		// Color32
+		case 9:
+		{
+			int iVar = DHookGetParamObjectPtrVar(params, 3, 0, ObjectValueType_Int);
+			FormatEx(variantValue, sizeof(variantValue), "%d %d %d", (iVar&0xFF), (iVar&0xFF00) >> 8, (iVar&0xFF0000) >> 16);
 		}
 
 		default:
