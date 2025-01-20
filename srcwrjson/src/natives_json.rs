@@ -398,10 +398,10 @@ pub extern "C" fn rust_SRCWRJSON_ToFileHandle(
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_SRCWRJSON_ToString(
-	ctx: NonNull<c_void>,
+	_ctx: NonNull<c_void>,
 	object: &mut SRCWRJSON,
 	buffer: *mut u8,
-	local_addr: i32,
+	_local_addr: i32,
 	maxlength: usize,
 	flags: i32,
 	key: *const c_char,
@@ -413,27 +413,6 @@ pub extern "C" fn rust_SRCWRJSON_ToString(
 	}
 
 	let object = sidx(&mut object.v, key, flags, false, keylen)?;
-
-	if 0 == (flags & J_TOSTRING_NOALLOC) {
-		return match if 0 == (flags & J_PRETTY) {
-			serde_json::to_string(object)
-		} else {
-			serde_json::to_string_pretty(object)
-		} {
-			Err(_) => None,
-			Ok(mut s) => {
-				s.push('\0');
-				unsafe {
-					NonZeroUsize::new(cpp_string_to_local_utf8(
-						ctx,
-						local_addr,
-						maxlength,
-						s.as_str().as_ptr(),
-					))
-				}
-			},
-		};
-	}
 
 	// Okay, well now we write some ugly code to turn the buffer into a writer....
 
