@@ -19,6 +19,8 @@ use extshared::*;
 use futures::SinkExt;
 use futures::StreamExt;
 use tokio::io::AsyncReadExt;
+use tokio::io::AsyncWriteExt;
+use tokio::io::BufWriter;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
@@ -328,6 +330,25 @@ async fn handle_req(client: reqwest::Client, mut req: SRCWRHTTPReq) -> SRCWRHTTP
 
 	match builder.send().await {
 		Ok(resp) => {
+			if let Some(download_path_real) = &req.cbinfo.download_path_real {
+				// i'm probably cloning this fucking cbinfo string a shit ton... fuck it...
+				return match download_handler(resp, &download_path_real).await {
+					Ok(mut shr) => {
+						shr.cbinfo = req.cbinfo;
+						shr
+					},
+					Err(e) => {
+						// probably stream-reading error or file-writing error
+						let _ = tokio::fs::remove_file(download_path_real).await;
+						SRCWRHTTPResp {
+							cbinfo: req.cbinfo,
+							e: Some(e.to_string()),
+							..Default::default()
+						}
+					},
+				};
+			}
+
 			let status = resp.status().as_u16() as i32;
 			let headers = resp.headers().clone();
 			let bytes = resp.bytes().await.unwrap_or_default();
@@ -347,6 +368,43 @@ async fn handle_req(client: reqwest::Client, mut req: SRCWRHTTPReq) -> SRCWRHTTP
 			..Default::default()
 		},
 	}
+}
+
+async fn download_handler(
+	resp: reqwest::Response,
+	download_path: &str,
+) -> anyhow::Result<SRCWRHTTPResp> {
+	if !resp.status().is_success() {
+		anyhow::bail!("Non-success status: {}", resp.status());
+	}
+
+	let f = tokio::fs::File::create(download_path).await?;
+	let mut bufwriter = BufWriter::new(f);
+
+	let status = resp.status().as_u16() as i32;
+	let headers = resp.headers().clone();
+	let mut stream = resp.bytes_stream();
+
+	let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Bytes>();
+	let file_writer = tokio::spawn(async move {
+		while let Some(chunk) = rx.recv().await {
+			bufwriter.write_all(&chunk).await?;
+		}
+		bufwriter.into_inner().sync_all().await?;
+		anyhow::Ok(())
+	});
+	while let Some(item) = stream.next().await {
+		let chunk = item?;
+		tx.send(chunk)?;
+	}
+	drop(tx);
+	file_writer.await??;
+
+	Ok(SRCWRHTTPResp {
+		headers,
+		status,
+		..Default::default()
+	})
 }
 
 async fn async_receiver(
@@ -506,14 +564,14 @@ fn do_forward(mut resp: SRCWRHTTPResp) {
 	};
 
 	// take() so it doesn't get magically destroyed by cpp_forward_http_resp + FreeHandle...
-	let download_path = if let Some(mut s) = resp.cbinfo.download_path.take() {
+	let download_path_sp = if let Some(mut s) = resp.cbinfo.download_path_sp.take() {
 		s.push('\0');
 		Some(s)
 	} else {
 		None
 	};
 
-	let download_path_ptr = download_path
+	let download_path_ptr = download_path_sp
 		.as_ref()
 		.map(|s| s.as_ptr())
 		.unwrap_or(core::ptr::null());

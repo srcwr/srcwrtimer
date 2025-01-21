@@ -251,9 +251,12 @@ PLATFORM_EXTERN_C void cpp_forward_websocket_msg(
 
 static cell_t N_SRCWRHTTPReq_SRCWRHTTPReq(IPluginContext* ctx, const cell_t* params)
 {
+	COMPAT_CHECK("srcwrhttp_compat_version", 1);
+
 	char* url;
 	(void)ctx->LocalToString(params[1], &url);
 	MAYBE_FORMAT(1, url);
+	// TODO: ERROR on empty string
 	return HandleOrDestroy(ctx, rust_SRCWRHTTPReq_SRCWRHTTPReq(url), g_HTTPReqType);
 }
 
@@ -308,8 +311,12 @@ static cell_t N_SRCWRHTTPReq_Download(IPluginContext* ctx, const cell_t* params)
 	QUICK_HANDLE_CHECK(params[1]);
 	int callback = params[2];
 	int value = params[3];
-	char* filename;
-	(void)ctx->LocalToString(params[4], &filename);
+	char* sp_filename;
+	(void)ctx->LocalToString(params[4], &sp_filename);
+	MAYBE_FORMAT(4, sp_filename);
+	// TODO: check if filename is empty...
+	char real_filename[PLATFORM_MAX_PATH];
+	smutils->BuildPath(Path_Game, real_filename, sizeof(real_filename), "%s", sp_filename); // TODO: Error check?
 
 	IChangeableForward* fw = forwards->CreateForwardEx(
 		  NULL
@@ -327,7 +334,7 @@ static cell_t N_SRCWRHTTPReq_Download(IPluginContext* ctx, const cell_t* params)
 	{
 		if (fw->AddFunction(ctx, callback))
 		{
-			ret = rust_SRCWRHTTPReq_Download(object, fw, value, filename);
+			ret = rust_SRCWRHTTPReq_Download(object, fw, value, sp_filename, real_filename);
 		}
 		else
 		{
@@ -396,6 +403,7 @@ static cell_t N_SRCWRHTTPReq_body_add_file_on_send(IPluginContext* ctx, const ce
 	QUICK_HANDLE_CHECK(params[1]);
 	char* filename;
 	(void)ctx->LocalToString(params[2], &filename);
+	MAYBE_FORMAT(2, filename);
 	char filenamebuf[PLATFORM_MAX_PATH];
 	smutils->BuildPath(Path_Game, filenamebuf, sizeof(filenamebuf), "%s", filename); // TODO: Error check?
 	return rust_SRCWRHTTPReq_body_add_file_on_send(object, filenamebuf);
@@ -418,6 +426,7 @@ static cell_t N_SRCWRHTTPReq_body_add_file(IPluginContext* ctx, const cell_t* pa
 	QUICK_HANDLE_CHECK(params[1]);
 	char* filename;
 	(void)ctx->LocalToString(params[2], &filename);
+	MAYBE_FORMAT(2, filename);
 	char filenamebuf[PLATFORM_MAX_PATH];
 	smutils->BuildPath(Path_Game, filenamebuf, sizeof(filenamebuf), "%s", filename); // TODO: Error check?
 	return rust_SRCWRHTTPReq_body_add_file(object, filenamebuf);

@@ -30,9 +30,10 @@ extshared::smext_conf_boilerplate_extension_info!();
 
 #[derive(Debug, Default, Clone)]
 pub struct CallbackInfo {
-	user_value:    i32,
-	forward:       Option<NonNull<c_void>>,
-	download_path: Option<String>,
+	user_value:         i32,
+	forward:            Option<NonNull<c_void>>,
+	download_path_sp:   Option<String>,
+	download_path_real: Option<String>,
 }
 unsafe impl Send for CallbackInfo {} // so we can store the pointers...
 unsafe impl Sync for CallbackInfo {} // so we can send this in crossbeam things...

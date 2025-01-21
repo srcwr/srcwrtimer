@@ -28,7 +28,7 @@ bool rust_handle_size_SRCWRWebsocketMsg(void* object, unsigned int* size);
 void* rust_SRCWRHTTPReq_SRCWRHTTPReq(const char* url);
 
 void rust_SRCWRHTTPReq_YEET(void* object, IChangeableForward* forward, int value, const char* method);
-bigbool rust_SRCWRHTTPReq_Download(void* object, IChangeableForward* forward, int value, const char* path);
+bigbool rust_SRCWRHTTPReq_Download(void* object, IChangeableForward* forward, int value, const char* sp_path, const char* real_path);
 
 bigbool rust_SRCWRHTTPReq_method(void* object, const char* method);
 bigbool rust_SRCWRHTTPReq_header(void* object, const char* key, const char* value);

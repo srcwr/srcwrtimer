@@ -33,7 +33,9 @@ methodmap SRCWRHTTPReq < Handle {
 
 	// Downloads the response to a file.
 	// Closes this handle too.
-	public native void Download(SRCWRHTTPDownloadCallback callback, any value, const char[] path);
+	// Will only write file if the status code is a success (200-299).
+	// TODO: Add flag to still save to file even on a non-success status.
+	public native void Download(SRCWRHTTPDownloadCallback callback, any value, const char[] path_format, any ...);
 
 	// file upload might want `Content-Type: application/octet-stream`...
 	// JSON APIs usually want `Content-Type: application/json`...
@@ -51,11 +53,11 @@ methodmap SRCWRHTTPReq < Handle {
 	// Note: a `length` of `0` will use `strlen(content)`.
 	public native void body_set(int length=0, const char[] content, any ...);
 	// Adds the file's contents to the body (in the request-sending thread)
-	public native void body_add_file_on_send(const char[] path);
+	public native void body_add_file_on_send(const char[] path_format, any ...);
 	// Adds content to the body (immediately)
 	public native void body_add(int length=0, const char[] content, any ...);
 	// Adds the file's contents to the body (immediately)
-	public native void body_add_file(const char[] path);
+	public native void body_add_file(const char[] path_format, any ...);
 	public native void body_add_file_handle(File file);
 #if defined _srcwr_json_included
 	// Adds the JSON object to the request body...
@@ -113,12 +115,15 @@ methodmap SRCWRHTTPResp < Handle {
 	public native int header(const char[] name, char[] buffer, int maxlength);
 
 	// TODO: Split int get_bytes & get_text?
+	// TODO: Let you get from offsets in the file?
 	// Returns the number of chars written.
 	// Will use UTF-8 by default & NUL-terminate the string.
 	// You can also pass H_AS_BYTES in `flags` (still NUL-terminates the buffer).
 	public native int get(char[] buf, int buflen, int flags=0);
 
 	// TODO: Add get_url?
+	// TODO: Add an option to save-to-file (that's separate from the request.Download() function...)
+	//       Maybe you need headers and such to determine whether to save it.
 
 	// HTTP status code
 	property int status {
@@ -182,6 +187,10 @@ methodmap SRCWRWebsocketMsg < Handle {
 	}
 #endif
 }
+
+
+
+public int srcwrhttp_compat_version = 1;
 
 
 public Extension __ext_srcwrhttp = {

@@ -55,7 +55,10 @@ pub extern "C" fn rust_handle_size_SRCWRHTTPReq(object: &SRCWRHTTPReq, size: &mu
 			s += p.capacity();
 		}
 	}
-	if let Some(d) = &object.cbinfo.download_path {
+	if let Some(d) = &object.cbinfo.download_path_sp {
+		s += d.capacity();
+	}
+	if let Some(d) = &object.cbinfo.download_path_real {
 		s += d.capacity();
 	}
 	if let Some(u) = &object.url {
@@ -91,7 +94,10 @@ pub extern "C" fn rust_handle_size_SRCWRHTTPResp(object: &SRCWRHTTPResp, size: &
 	if let Some(e) = &object.e {
 		s += e.capacity();
 	}
-	if let Some(d) = &object.cbinfo.download_path {
+	if let Some(d) = &object.cbinfo.download_path_sp {
+		s += d.capacity();
+	}
+	if let Some(d) = &object.cbinfo.download_path_real {
 		s += d.capacity();
 	}
 	s += object.bytes.len();
@@ -124,9 +130,10 @@ pub extern "C" fn rust_SRCWRHTTPReq_SRCWRHTTPReq(
 		connect_timeout:  10000,
 
 		cbinfo: CallbackInfo {
-			user_value:    0,
-			forward:       None,
-			download_path: None,
+			user_value:         0,
+			forward:            None,
+			download_path_sp:   None,
+			download_path_real: None,
 		},
 	});
 	Some(unsafe { NonNull::new_unchecked(Box::into_raw(boxed)) })
@@ -141,9 +148,11 @@ pub extern "C" fn rust_SRCWRHTTPReq_YEET(
 	value: i32,
 	method: *const c_char,
 ) {
-	if let Some(method) = strxx(method, true, 0) {
-		if let Ok(method) = reqwest::Method::from_str(method) {
-			object.method = method;
+	if !method.is_null() {
+		if let Some(method) = strxx(method, true, 0) {
+			if let Ok(method) = reqwest::Method::from_str(method) {
+				object.method = method;
+			}
 		}
 	}
 	object.cbinfo.user_value = value;
@@ -156,9 +165,11 @@ pub extern "C" fn rust_SRCWRHTTPReq_Download(
 	object: &mut SRCWRHTTPReq,
 	forward: Option<NonNull<c_void>>,
 	value: i32,
-	filename: *const c_char,
+	sp_filename: *const c_char,
+	real_filename: *const c_char,
 ) -> Option<NonZeroU32> {
-	object.cbinfo.download_path = Some(strxx(filename, false, 0)?.into());
+	object.cbinfo.download_path_sp = Some(strxx(sp_filename, false, 0)?.into());
+	object.cbinfo.download_path_real = Some(strxx(real_filename, false, 0)?.into());
 	rust_SRCWRHTTPReq_YEET(object, forward, value, core::ptr::null());
 	NonZeroU32::new(1)
 }
