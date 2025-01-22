@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2022-2024 rtldg <rtldg@protonmail.com>
+// Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 
@@ -26,6 +26,34 @@ CGlobalVars* gpGlobals = NULL;
 IFileSystem *filesystem = NULL;
 #endif
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// asdf
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool is_plugin_compatible(IPluginContext* ctx, const char* pubvarname, cell_t required)
+{
+	cell_t* pubvar = get_plugin_pubvar(ctx->GetRuntime(), pubvarname);
+	if (!pubvar || *pubvar != required) [[unlikely]]
+	{
+		ctx->ReportError("Plugin is not compatible with extension %s! Update includes and recompile it! (%s (%d) should be %d)", rust_conf_name(), pubvarname, pubvar ? *pubvar : -1, required);
+		return false;
+	}
+	return true;
+}
+
+cell_t* get_plugin_pubvar(IPluginRuntime* rt, const char* name)
+{
+	uint32_t idx;
+	int err = rt->FindPubvarByName(name, &idx);
+	if (err != SP_ERROR_NONE) return nullptr;
+	cell_t *pubvar, local_addr;
+	rt->GetPubvarAddrs(idx, &local_addr, &pubvar);
+	return pubvar;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// asdf
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool MyExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
 {

@@ -251,7 +251,7 @@ PLATFORM_EXTERN_C void cpp_forward_websocket_msg(
 
 static cell_t N_SRCWRHTTPReq_SRCWRHTTPReq(IPluginContext* ctx, const cell_t* params)
 {
-	COMPAT_CHECK("srcwrhttp_compat_version", 1);
+	if (!is_plugin_compatible(ctx, "srcwrhttp_compat_version", 1)) [[unlikely]] return 0;
 
 	char* url;
 	(void)ctx->LocalToString(params[1], &url);

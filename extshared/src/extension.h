@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2022-2024 rtldg <rtldg@protonmail.com>
+// Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 #pragma once
@@ -23,7 +23,7 @@ inline const char** GlobalsMapname()
 #ifdef SOURCE_ENGINE
 	return (const char**)&gpGlobals->mapname;
 #else
-	return &(((const char**)gpGlobals)[0x3C/4]); // TODO: WHAT THE FUCK! STOP HARDCODING SHIT!!!
+	return &(((const char**)gpGlobals)[0x3C/sizeof(char*)]); // TODO: WHAT THE FUCK! STOP HARDCODING SHIT!!!
 #endif
 }
 
@@ -43,21 +43,9 @@ inline const char** GlobalsMapname()
 		var = fmtbuffer;              \
 	}
 
-#define COMPAT_CHECK(pubvar, required) \
-	if (auto pluginver = get_plugin_pubvar_cell(ctx, (pubvar)); pluginver != (required)) \
-	{ \
-		ctx->ReportError("Plugin is not compatible with extension! Recompile it! (%s:%d != %d)", (pubvar), pluginver, (required)); \
-		return 0; \
-	}
-inline int get_plugin_pubvar_cell(IPluginContext* ctx, const char* pubvarname)
-{
-	uint32_t idx;
-	int err = ctx->FindPubvarByName(pubvarname, &idx);
-	if (err != SP_ERROR_NONE) return -1;
-	cell_t *pubvar, local_addr;
-	ctx->GetPubvarAddrs(idx, &local_addr, &pubvar);
-	return *pubvar;
-}
+
+bool is_plugin_compatible(IPluginContext* ctx, const char* pubvarname, cell_t required);
+cell_t* get_plugin_pubvar(IPluginRuntime* rt, const char* name);
 
 
 class MyExtension : public SDKExtension
