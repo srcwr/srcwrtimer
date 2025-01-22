@@ -374,9 +374,7 @@ async fn download_handler(
 	resp: reqwest::Response,
 	download_path: &str,
 ) -> anyhow::Result<SRCWRHTTPResp> {
-	if !resp.status().is_success() {
-		anyhow::bail!("Non-success status: {}", resp.status());
-	}
+	anyhow::ensure!(resp.status().is_success(), "Non-success status: {}", resp.status());
 
 	let f = tokio::fs::File::create(download_path).await?;
 	let mut bufwriter = BufWriter::new(f);

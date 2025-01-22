@@ -256,7 +256,11 @@ static cell_t N_SRCWRHTTPReq_SRCWRHTTPReq(IPluginContext* ctx, const cell_t* par
 	char* url;
 	(void)ctx->LocalToString(params[1], &url);
 	MAYBE_FORMAT(1, url);
-	// TODO: ERROR on empty string
+	if (url[0] == '\0')
+	{
+		ctx->ReportError("URL is an empty string");
+		return 0;
+	}
 	return HandleOrDestroy(ctx, rust_SRCWRHTTPReq_SRCWRHTTPReq(url), g_HTTPReqType);
 }
 
@@ -314,9 +318,13 @@ static cell_t N_SRCWRHTTPReq_Download(IPluginContext* ctx, const cell_t* params)
 	char* sp_filename;
 	(void)ctx->LocalToString(params[4], &sp_filename);
 	MAYBE_FORMAT(4, sp_filename);
-	// TODO: check if filename is empty...
+	if (sp_filename[0] == '\0')
+	{
+		ctx->ReportError("Filename is an empty string");
+		return 0;
+	}
 	char real_filename[PLATFORM_MAX_PATH];
-	smutils->BuildPath(Path_Game, real_filename, sizeof(real_filename), "%s", sp_filename); // TODO: Error check?
+	smutils->BuildPath(Path_Game, real_filename, sizeof(real_filename), "%s", sp_filename);
 
 	IChangeableForward* fw = forwards->CreateForwardEx(
 		  NULL
@@ -405,7 +413,7 @@ static cell_t N_SRCWRHTTPReq_body_add_file_on_send(IPluginContext* ctx, const ce
 	(void)ctx->LocalToString(params[2], &filename);
 	MAYBE_FORMAT(2, filename);
 	char filenamebuf[PLATFORM_MAX_PATH];
-	smutils->BuildPath(Path_Game, filenamebuf, sizeof(filenamebuf), "%s", filename); // TODO: Error check?
+	smutils->BuildPath(Path_Game, filenamebuf, sizeof(filenamebuf), "%s", filename);
 	return rust_SRCWRHTTPReq_body_add_file_on_send(object, filenamebuf);
 }
 
@@ -428,7 +436,7 @@ static cell_t N_SRCWRHTTPReq_body_add_file(IPluginContext* ctx, const cell_t* pa
 	(void)ctx->LocalToString(params[2], &filename);
 	MAYBE_FORMAT(2, filename);
 	char filenamebuf[PLATFORM_MAX_PATH];
-	smutils->BuildPath(Path_Game, filenamebuf, sizeof(filenamebuf), "%s", filename); // TODO: Error check?
+	smutils->BuildPath(Path_Game, filenamebuf, sizeof(filenamebuf), "%s", filename);
 	return rust_SRCWRHTTPReq_body_add_file(object, filenamebuf);
 }
 

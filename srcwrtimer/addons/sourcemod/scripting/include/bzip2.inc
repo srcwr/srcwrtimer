@@ -28,8 +28,8 @@ enum BZ_Error {
 
 typedef BZ2Callback = function void (BZ_Error iError, char[] inFile, char[] outFile, any data);
 
-native void BZ2_DecompressFile(char[] inFile, char[] outFile, BZ2Callback cb, any data = 0);
-native void BZ2_CompressFile(char[] inFile, char[] outFile, int iCompressionLevel, BZ2Callback cb, any data = 0);
+native void BZ2_DecompressFile(const char[] inFile, const char[] outFile, BZ2Callback cb, any data = 0);
+native void BZ2_CompressFile(const char[] inFile, const char[] outFile, int iCompressionLevel, BZ2Callback cb, any data = 0);
 
 stock void BZ2_Error(BZ_Error iError, char[] sError, int iErrorStringLength) {
 	switch(iError) {

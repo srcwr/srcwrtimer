@@ -116,9 +116,9 @@ pub extern "C" fn rust_SRCWRHTTPReq_SRCWRHTTPReq(
 	let boxed = Box::new(SRCWRHTTPReq {
 		url:     Some(url),
 		method:  reqwest::Method::GET,
-		headers: None, //Default::default(),
+		headers: None,
 
-		body:              None, //Vec::new(),
+		body:              None,
 		body_file_on_send: None,
 
 		local_address:       None,

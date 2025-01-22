@@ -44,11 +44,12 @@ inline const char** GlobalsMapname()
 	}
 
 #define COMPAT_CHECK(pubvar, required) \
-	if (auto expected = compat_check_inner(ctx, (pubvar)); expected != (required)) \
+	if (auto pluginver = get_plugin_pubvar_cell(ctx, (pubvar)); pluginver != (required)) \
 	{ \
-		return ctx->ThrowNativeError("Plugin is not compatible with extension! Recompile it! (%:%d != %d)", (pubvar), expected, (required)); \
+		ctx->ReportError("Plugin is not compatible with extension! Recompile it! (%s:%d != %d)", (pubvar), pluginver, (required)); \
+		return 0; \
 	}
-inline int compat_check_inner(IPluginContext* ctx, const char* pubvarname)
+inline int get_plugin_pubvar_cell(IPluginContext* ctx, const char* pubvarname)
 {
 	uint32_t idx;
 	int err = ctx->FindPubvarByName(pubvarname, &idx);

@@ -74,7 +74,7 @@ extern "C" fn do_callback(info: *mut c_void) {
 		info.infile.push('\0');
 		info.outfile.push('\0');
 		extshared::cpp_forward_push_cell(fw, info.error as i32);
-		extshared::cpp_forward_push_string(fw, info.infilefull.as_ptr()); // path
+		extshared::cpp_forward_push_string(fw, info.infile.as_ptr()); // path
 		extshared::cpp_forward_push_string(fw, info.outfile.as_ptr()); // file
 		extshared::cpp_forward_push_cell(fw, info.data);
 		extshared::cpp_forward_execute(fw, &mut 0);

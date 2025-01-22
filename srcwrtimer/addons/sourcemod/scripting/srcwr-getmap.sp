@@ -8,10 +8,11 @@
 #pragma newdecls required
 #pragma semicolon 1
 
-#define MAPNAMEBUFSZ 129 // taken from core.inc... update if it changes...
-
 #include <bzip2>
 #include <srcwr/http>
+
+#undef REQUIRE_PLUGIN
+#include <srcwr/core>
 
 #include "srcwr/convar_class.inc"
 
@@ -36,7 +37,7 @@ public void OnPluginStart()
 	gCV_URL = new Convar("srcwr_getmap_url", "https://main.fastdl.me/maps/", "TODO: description", FCVAR_PROTECTED);
 	gCV_FastdlPath = new Convar("srcwr_getmap_fastdl_path", "", "TODO: description. If empty, then will delete a .bz2 file if downloaded", FCVAR_PROTECTED);
 	gCV_MapsPath = new Convar("srcwr_getmap_maps_path", "maps/", "TODO: description", FCVAR_PROTECTED);
-	gCV_ReplaceMap = new Convar("srcwr_getmap_replace_map", "", "TODO: description", 0, true, 0.0, true, 1.0);
+	gCV_ReplaceMap = new Convar("srcwr_getmap_replace_map", "1", "TODO: description", 0, true, 0.0, true, 1.0);
 	Convar.AutoExecConfig();
 }
 
@@ -79,6 +80,8 @@ Action Command_GetMap(int client, int argc)
 	{
 		// check if exists in fastdl or maps folder
 	}
+
+	ReplyToCommand(client, "Attempting to download %s", mapname);
 
 	DataPack dp = new DataPack();
 	dp.WriteCell(client ? GetClientSerial(client) : 0);
@@ -134,7 +137,7 @@ void DownloadCallback(any data, const char[] error, const char[] filename)
 			return;
 		}
 
-		// TODO: log error
+		ReplyToCommand(client, "Failed to download %s! Error: %s", mapname, error);
 
 		delete dp;
 		return;
@@ -146,11 +149,11 @@ void DownloadCallback(any data, const char[] error, const char[] filename)
 
 		char bsppath[PLATFORM_MAX_PATH];
 		gCV_MapsPath.GetString(bsppath, sizeof(bsppath));
-		if (path[strlen(bsppath)-1] != '/')
+		if (bsppath[strlen(bsppath)-1] != '/')
 			StrCat(bsppath, sizeof(bsppath), "/");
 		Format(bsppath, sizeof(bsppath), "%s%s.bsp", bsppath, mapname);
 
-		BZ2_DecompressFile(filename, path, DecompressCallback, dp);
+		BZ2_DecompressFile(filename, bsppath, DecompressCallback, dp);
 	}
 	else
 	{
@@ -164,10 +167,10 @@ void DownloadCallback(any data, const char[] error, const char[] filename)
 		}
 		else
 		{
-			if (path[strlen(fastdlpath)-1] != '/')
+			if (fastdlpath[strlen(fastdlpath)-1] != '/')
 				StrCat(fastdlpath, sizeof(fastdlpath), "/");
 			Format(fastdlpath, sizeof(fastdlpath), "%s%s.bsp.bz2", fastdlpath, mapname);
-			BZ2_CompressFile(filename, fastdlpath, 9, dp);
+			BZ2_CompressFile(filename, fastdlpath, 9, CompressCallback, dp);
 		}
 	}
 }
@@ -181,12 +184,29 @@ void DecompressCallback(BZ_Error error, char[] infile, char[] outfile, any data)
 	dp.ReadString(mapname, sizeof(mapname));
 	delete dp;
 
-	if (error != BZ_OK)
+	if (error == BZ_OK)
+	{
+		YayToClient(client, mapname);
+
+		char fastdlpath[PLATFORM_MAX_PATH];
+		gCV_FastdlPath.GetString(fastdlpath, sizeof(fastdlpath));
+
+		//PrintToServer("'%s' '%s' '%s'", fastdlpath, infile, outfile);
+
+		if (fastdlpath[0] == '\0')
+		{
+			DeleteFile(infile);
+		}
+	}
+	else
 	{
 		DeleteFile(infile);
 		DeleteFile(outfile);
 
-		// TODO:
+		char estr[255];
+		BZ2_Error(error, estr, sizeof(estr));
+		ReplyToCommand(client, "Failed to extract %s.bsp.bz2! (%s)", mapname, estr);
+		LogError("Failed to extract %s.bsp.bz2! (%s)", mapname, estr);
 	}
 }
 
@@ -199,15 +219,22 @@ void CompressCallback(BZ_Error error, char[] infile, char[] outfile, any data)
 	dp.ReadString(mapname, sizeof(mapname));
 	delete dp;
 
-	if (error != BZ_OK)
+	if (error == BZ_OK)
+	{
+		YayToClient(client, mapname);
+	}
+	else
 	{
 		DeleteFile(outfile);
 
-		// TODO:
+		char estr[255];
+		BZ2_Error(error, estr, sizeof(estr));
+		ReplyToCommand(client, "Failed to compress %s.bsp to a .bz2! (%s)", mapname, estr);
+		LogError("Failed to compress %s.bsp to a .bz2! (%s)", mapname, estr);
 	}
 }
 
 void YayToClient(int client, const char[] mapname)
 {
-	// TODO:
+	ReplyToCommand(client, "Downloaded %s", mapname);
 }
