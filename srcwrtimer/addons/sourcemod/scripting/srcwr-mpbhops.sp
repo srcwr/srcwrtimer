@@ -73,7 +73,7 @@ public void OnPluginStart()
 		while ((ent = FindEntityByClassname(ent, "func_button")) != -1)
 			HookBlock(ent, true);
 
-		for (int i = 1; i <= MaxClients; ++i)
+		for (int i = 1, max = MaxClients; i <= max; ++i)
 		{
 			if (IsClientInGame(i))
 				OnClientPutInServer(i);

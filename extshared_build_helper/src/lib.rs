@@ -274,8 +274,10 @@ pub fn smext_build() -> cc::Build {
 
 		build
 			.flag("/std:c++latest") // /std:c++23 doesn't exist yet!! crazy! TODO: periodically check this https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version
+			.flag("/Zi") // debug info things https://learn.microsoft.com/en-us/cpp/build/reference/z7-zi-zi-debug-information-format
+			.flag("/FS") // force synchronous pdb writes https://learn.microsoft.com/en-us/cpp/build/reference/fs-force-synchronous-pdb-writes
 			.flag("/wd4100") // disable warning C4100: unreferenced formal parameter
-			.flag("/EHsc")
+			.flag("/EHsc") // https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model
 			// "This needs to be after our optimization flags which could otherwise disable it."
 			// "Don't omit the frame pointer.""
 			.flag("/Oy-");

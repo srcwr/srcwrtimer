@@ -248,13 +248,18 @@ stock int GetSpectatorTarget(int client, int fallback = -1)
 #if 0
 stock float NormalizeAngle(float original_angle)
 {
-	// TODO: holy fucking shit i hate sourcemod and sourcepawn so much >error 407: operator %(Float, Float) was used before declaration
 	float angle = original_angle % 360.0;
 	angle = (angle + 360.0) % 360.0;
 	if (angle > 180.0) angle -= 360.0;
 	return angle;
 }
-#else
+#endif
+stock float NormalizeAngleNoNaN(float angle)
+{
+	angle = angle - (RoundToFloor((angle + 180.0)/360.0))*360.0;
+	if (angle != angle) angle = 0.0; // try not to propogate NaN!
+	return angle;
+}
 // stolen from oblivious
 // will infinite loop if given bad floats so just don't do that!!!!
 stock float DangerousNormalizeAngle(float ang)
@@ -263,7 +268,6 @@ stock float DangerousNormalizeAngle(float ang)
 	while (ang < -180.0) ang += 360.0;
 	return ang;
 }
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // natives - misc

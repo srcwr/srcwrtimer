@@ -11,6 +11,7 @@ class IFileObject
 {
 public:
 	virtual ~IFileObject();
+	virtual size_t Size() = 0;
 	virtual size_t Read(void *pOut, int size) = 0;
 	virtual char *ReadLine(char *pOut, int size) = 0;
 	virtual size_t Write(const void *pData, int size) = 0;

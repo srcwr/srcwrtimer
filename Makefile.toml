@@ -295,6 +295,8 @@ args = ["zigbuild", "--release", "--target", "i686-unknown-linux-gnu.2.26"]
 [tasks.msvc]
 toolchain = "nightly"
 command = "cargo"
+# Helps with getting some debug information passed in...
+env = { "CFLAGS" = "/Zi /FS", "CXXFLAGS" = "/Zi /FS" }
 args = ["build", "--release", "--target", "i686-pc-windows-msvc"]
 
 # TODO: xwin not quite worky...

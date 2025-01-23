@@ -92,53 +92,41 @@ DETOUR_DECL_MEMBER1(CDownloadListGenerate_SetStringTable, void, void*, stringtab
 // So, fuck it: dummy.nav 24/7
 DETOUR_DECL_MEMBER0(CNavMesh_Load, int)
 {
-	FileHandle_t f = filesystem->Open("maps/dummy.nav", "ab", "GAME");
-	bool read_only = !!f;
-	if (!f) f = filesystem->Open("maps/dummy.nav", "rb", "GAME");
-
-	if (f)
-	{
-		if (!read_only && filesystem->Size(f) == 0)
-		{
-			//static const char dummy[205+1] = "\xCE\xFA\xED\xFE\x10\x00\x00\x00\x01\x00\x00\x00\x58\xF6\x01\x00\x01\x00\x00\x01\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x80\xED\xC3\x00\x00\x48\x42\xFF\x1F\x00\x42\x00\x00\x48\xC2\x00\x80\xED\x43\xFF\x1F\x00\x42\xFF\x1F\x00\x42\xFF\x1F\x00\x42\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x40\xE7\xC3\x00\x00\x7A\x42\xFF\x1F\x00\x42\x01\x01\x00\x00\x00\x00\x00\x7A\xC2\x00\x00\x7A\x42\xFF\x1F\x00\x42\x01\x02\x00\x00\x00\x00\x00\x7A\xC2\x00\x40\xE7\x43\xFF\x1F\x00\x42\x01\x03\x00\x00\x00\x00\x40\xE7\xC3\x00\x40\xE7\x43\xFF\x1F\x00\x42\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xF0\x42\x00\x00\xF0\x42\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x01\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00";
-
-			/*
-			cefaedfe   magic
-			01000000   version
-			01000000   number of nav areas
-				12345678   nav area id
-				02         m_attributeFlags (jump)
-				6 floats   m_extent.lo.{x,y,z} and m_extent.hi.{x,y,z}
-				float      m_neZ
-				float      m_swZ
-				00000000   connection count north
-				00000000   connection count east
-				00000000   connection count south
-				00000000   connection count west
-				00         hiding spot count
-				00         approach area count
-				00000000   encounter paths count
-			*/
-			// TODO: recheck the validity of the nav maybe but it seems to work so lmao...
-			static const char dummy[63+1] = "\xCE\xFA\xED\xFE\x01\x00\x00\x00\x01\x00\x00\x00\x12\x34\x56\x78\x02\x00\x00\x80\xBF\x00\x00\x80\xBF\x00\x00\x80\xBF\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
-			(void)filesystem->Write(dummy, sizeof(dummy)-1, f);
-		}
-
-		filesystem->Close(f);
-
-		auto original_mapname = *GlobalsMapname();
-		*GlobalsMapname() = "dummy";
 #if TEST_STUFF
-		rootconsole->ConsolePrint("!!!!!!!!!!! overwrite mapname -- '%s'", gpGlobals->mapname);
+	filesystem->SetWarningLevel(FILESYSTEM_WARNING_REPORTALLACCESSES_READWRITE);
 #endif
-		int ret = DETOUR_MEMBER_CALL(CNavMesh_Load)();
-		*GlobalsMapname() = original_mapname;
-		return ret;
-	}
-	else
+
+	if (filesystem->Size("maps/dummy.nav", "GAME") == 0)
 	{
-		return DETOUR_MEMBER_CALL(CNavMesh_Load)();
+		FileHandle_t f = filesystem->Open("maps/dummy.nav", "wb", "GAME");
+
+		if (f)
+		{
+			static const char dummy[205+1] = "\xCE\xFA\xED\xFE\x10\x00\x00\x00\x01\x00\x00\x00\x58\xF6\x01\x00\x01\x00\x00\x01\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x80\xED\xC3\x00\x00\x48\x42\xFF\x1F\x00\x42\x00\x00\x48\xC2\x00\x80\xED\x43\xFF\x1F\x00\x42\xFF\x1F\x00\x42\xFF\x1F\x00\x42\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x40\xE7\xC3\x00\x00\x7A\x42\xFF\x1F\x00\x42\x01\x01\x00\x00\x00\x00\x00\x7A\xC2\x00\x00\x7A\x42\xFF\x1F\x00\x42\x01\x02\x00\x00\x00\x00\x00\x7A\xC2\x00\x40\xE7\x43\xFF\x1F\x00\x42\x01\x03\x00\x00\x00\x00\x40\xE7\xC3\x00\x40\xE7\x43\xFF\x1F\x00\x42\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xF0\x42\x00\x00\xF0\x42\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F\x01\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+			int _written = filesystem->Write(dummy, sizeof(dummy)-1, f);
+			filesystem->Flush(f);
+			filesystem->Close(f);
+
+#if TEST_STUFF
+			filesystem->SetWarningLevel(FILESYSTEM_WARNING_QUIET);
+			rootconsole->ConsolePrint("wrote %d bytes to dummy.nav", _written);
+#endif
+
+			auto original_mapname = *GlobalsMapname();
+			*GlobalsMapname() = "dummy";
+#if TEST_STUFF
+			rootconsole->ConsolePrint("!!!!!!!!!!! overwrite mapname -- '%s'", gpGlobals->mapname);
+#endif
+			int ret = DETOUR_MEMBER_CALL(CNavMesh_Load)();
+			*GlobalsMapname() = original_mapname;
+			return ret;
+		}
 	}
+
+#if TEST_STUFF
+	filesystem->SetWarningLevel(FILESYSTEM_WARNING_QUIET);
+#endif
+	return DETOUR_MEMBER_CALL(CNavMesh_Load)();
 }
 
 bool Extension_OnLoad(char* error, size_t maxlength)
@@ -280,7 +268,7 @@ static cell_t N_SRCWRUTIL_GetSHA1_File(IPluginContext* ctx, const cell_t* params
 	return rust_SRCWRUTIL_GetSHA1_File(fileobject, buffer);
 }
 
-// GMT, UTC+0, same thing...
+// GMT... UTC+0... same thing...
 static cell_t N_SRCWRUTIL_FormatTimeGMT(IPluginContext* ctx, const cell_t* params)
 {
 	// linux builds (because glibc 2.17?) have a 4-byte time_t???

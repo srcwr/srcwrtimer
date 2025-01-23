@@ -85,7 +85,7 @@ public void OnPluginStart()
 			SDKHook(entity, SDKHook_OnTakeDamage, Hook_Button_OnTakeDamage);
 		}
 
-		for (int i = 1; i <= MaxClients; ++i)
+		for (int i = 1, max = MaxClients; i <= max; ++i)
 		{
 			if (IsClientInGame(i) && !gJ_Timer[i].Has(0, "eventqueue"))
 			{
