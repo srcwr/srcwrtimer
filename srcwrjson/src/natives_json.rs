@@ -1471,7 +1471,7 @@ pub extern "C" fn rust_SRCWRJSON_FillKeys(
 ) -> Option<NonZeroU32> {
 	let object = sidx(&mut object.v, key, flags, false, keylen)?.as_object()?;
 	for k in object.keys() {
-		cellarray.push_string(k)?;
+		let _ = cellarray.push_string(k)?;
 	}
 	NonZeroU32::new(1)
 }

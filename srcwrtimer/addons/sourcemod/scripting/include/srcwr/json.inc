@@ -86,6 +86,16 @@ enum J_Type {
 	J_Array = 5,
 	J_Map = 6,
 }
+char gS_J_Type[][] = {
+	"unknown",
+	"null",
+	"bool",
+	"number",
+	"string",
+	"array",
+	"map",
+};
+#pragma unused gS_J_Type
 
 
 methodmap SRCWRJSON < Handle {

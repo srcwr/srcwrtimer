@@ -38,9 +38,9 @@ PLATFORM_EXTERN_C char* ICellArray_at(ICellArray* cellarray, size_t index)
 PLATFORM_EXTERN_C size_t ICellArray_PushString(ICellArray* cellarray, const char* str, size_t len)
 {
 	if (len < 1) len = strlen(str);
-	if (!len) return 0;
+	if (!len) return -1;
 	char* ptr = (char*)cellarray->push();
-	if (!ptr) return 0;
+	if (!ptr) return -1;
 	auto maxStringSpace = cellarray->blocksize() * 4 - 1;
 	len = maxStringSpace < len ? maxStringSpace : len;
 	memcpy(ptr, str, len);

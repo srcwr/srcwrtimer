@@ -3,7 +3,6 @@
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 use core::ffi::c_char;
-use std::num::NonZeroUsize;
 
 // TODO: Rename?
 #[repr(C)]
@@ -20,11 +19,16 @@ unsafe extern "C" {
 	pub fn ICellArray_resize(cellarray: *mut ICellArray, count: usize) -> bool;
 	pub fn ICellArray_push(cellarray: *mut ICellArray) -> *mut c_char;
 	pub fn ICellArray_at(cellarray: *mut ICellArray, index: usize) -> *mut c_char;
-	pub fn ICellArray_PushString(cellarray: *mut ICellArray, s: *const u8, len: usize) -> usize;
+	pub fn ICellArray_PushString(cellarray: *mut ICellArray, s: *const u8, len: usize) -> isize;
 }
 
 impl ICellArray {
-	pub fn push_string(&mut self, s: &str) -> Option<NonZeroUsize> {
-		NonZeroUsize::new(unsafe { ICellArray_PushString(self, s.as_ptr(), s.len()) })
+	pub fn push_string(&mut self, s: &str) -> Option<usize> {
+		let idx = unsafe { ICellArray_PushString(self, s.as_ptr(), s.len()) };
+		if idx < 0 {
+			None
+		} else {
+			Some(idx as usize)
+		}
 	}
 }
