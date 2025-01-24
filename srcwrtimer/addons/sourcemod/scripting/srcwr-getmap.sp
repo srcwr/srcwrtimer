@@ -41,6 +41,9 @@ public void OnPluginStart()
 	Convar.AutoExecConfig();
 }
 
+// TODO: Fetch https://main.fastdl.me/maps_index.html.txt, find matches, and show in a menu...
+// TODO: Also add a section for the most recently-added section... Might need to read the repo .csv for this...
+//       Providing easy access to the recently-added was actually a suggestion that someone had mentioned to me before!
 Action Command_GetMap(int client, int argc)
 {
 	if (argc == 0)

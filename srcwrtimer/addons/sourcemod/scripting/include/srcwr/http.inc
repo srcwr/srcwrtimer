@@ -124,6 +124,9 @@ methodmap SRCWRHTTPResp < Handle {
 	// TODO: Add get_url?
 	// TODO: Add an option to save-to-file (that's separate from the request.Download() function...)
 	//       Maybe you need headers and such to determine whether to save it.
+	// TODO: Add a GetLines() or something that fills an ArrayList?. Would be very epic... esp for GetMap
+	//       Also a GetLine() that only reads a single line but then we have to store a Lines iterator...
+	//       We could look into that srcwrutil SmolStringList thing too (since ArrayLists are fat)
 
 	// HTTP status code
 	property int status {
