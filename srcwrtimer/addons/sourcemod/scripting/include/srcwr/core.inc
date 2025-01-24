@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2022-2024 rtldg <rtldg@protonmail.com>
+// Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 #if defined _srcwr_core_included
@@ -11,10 +11,15 @@
 #include "json.inc"
 
 #if !defined SRCWR_VERSION
-#define SRCWR_VERSION "1.0.0"
+#define SRCWR_VERSION_STR "1.0.0"
 #define SRCWR_MAJOR 1
 #define SRCWR_MINOR 0
 #define SRCWR_PATCH 0
+#if defined SRCWR_VERSION_GIT
+#define SRCWR_VERSION SRCWR_VERSION_STR ... "-" ... SRCWR_VERSION_GIT
+#else
+#define SRCWR_VERSION SRCWR_VERSION_STR
+#endif
 #endif
 
 #if !defined SRCWR_REPO_BASE_URL

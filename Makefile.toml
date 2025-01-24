@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2022-2024 rtldg <rtldg@protonmail.com>
+# Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 # This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 # Some documentation:
@@ -174,17 +174,19 @@ fn do_everything
 	smscripting = set "${EXTERNALDIR}/${SMBINVER}/addons/sourcemod/scripting"
 	plugins = glob_array ${srcwrsm}/scripting/*.sp
 
+	gitver = set "${CARGO_MAKE_GIT_HEAD_LAST_COMMIT_HASH_PREFIX}-${CARGO_MAKE_GIT_BRANCH}"
+
 	for path in ${plugins}
 		filesize = get_file_size ${path}
 		if greater_than ${filesize} 0
 			basesp = basename ${path}
 			basesmx = replace ${basesp} .sp .smx
 			if eq ${CI} "true"
-				echo                 "spcomp -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}"
-				exec --fail-on-error  spcomp -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}
+				echo                 "spcomp -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} SRCWR_VERSION_GIT=\"${gitver}\" ${path}"
+				exec --fail-on-error  spcomp -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} SRCWR_VERSION_GIT=\"${gitver}\" ${path}
 			else
-				echo                 "${smscripting}/${SPCOMP} -i${smscripting}/include -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}"
-				exec --fail-on-error  ${smscripting}/${SPCOMP} -i${smscripting}/include -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} ${path}
+				echo                 "${smscripting}/${SPCOMP} -i${smscripting}/include -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} SRCWR_VERSION_GIT=\"${gitver}\" ${path}"
+				exec --fail-on-error  ${smscripting}/${SPCOMP} -i${smscripting}/include -i${srcwrsm}/scripting/include -o ${srcwrsm}/plugins/${basesmx} SRCWR_VERSION_GIT=\"${gitver}\" ${path}
 			end
 		end
 	end

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2022-2024 rtldg <rtldg@protonmail.com>
+// Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 // TODO: It would be cool if we could make these macros only define these functions if the file does not already define them...
@@ -20,7 +20,22 @@ macro_rules! smext_conf_boilerplate_extension_info {
 		}
 		#[no_mangle]
 		pub extern "C" fn rust_conf_version() -> *const u8 {
-			concat!(env!("CARGO_PKG_VERSION"), "\0").as_ptr()
+			static VER: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+				let dirty = if env!("VERGEN_GIT_DIRTY") == "true" {
+					" (dirty)"
+				} else {
+					""
+				};
+				format!(
+					"{}-{}-{} built {}{dirty}\0",
+					env!("CARGO_PKG_VERSION"),
+					env!("VERGEN_GIT_SHA"),
+					env!("VERGEN_GIT_BRANCH"),
+					env!("VERGEN_BUILD_DATE")
+				)
+			});
+			//concat!(env!("CARGO_PKG_VERSION"), "\0").as_ptr()
+			VER.as_ptr()
 		}
 		#[no_mangle]
 		pub extern "C" fn rust_conf_author() -> *const u8 {

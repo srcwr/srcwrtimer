@@ -11,3 +11,4 @@ repository.workspace = true
 [dependencies]
 cc = { version = "1.0", features = ["parallel"] }
 regex = "1"
+vergen-gitcl = { version = "1.0", features = ["build"] }

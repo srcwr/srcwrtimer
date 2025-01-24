@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2022-2024 rtldg <rtldg@protonmail.com>
+// Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 /*
@@ -15,6 +15,10 @@ fn file2<P: AsRef<std::path::Path>>(build: &mut cc::Build, p: P) -> &mut cc::Bui
   build.file(p)
 }
 */
+
+use vergen_gitcl::BuildBuilder;
+use vergen_gitcl::Emitter;
+use vergen_gitcl::GitclBuilder;
 
 pub fn generate_inc_defines_and_enums(outdir: &str, incfile: &str, name: &str) {
 	println!("cargo:rerun-if-changed={}", incfile);
@@ -233,6 +237,27 @@ pub fn link_sm_detours(mainbuild: &mut cc::Build) {
 }
 
 pub fn smext_build() -> cc::Build {
+	let buildinfo = BuildBuilder::default()
+		.use_local(false)
+		.build_date(true)
+		.build()
+		.unwrap();
+	let gitinfo = GitclBuilder::default()
+		.branch(true)
+		.dirty(true)
+		.sha(true)
+		//.commit_date(true)
+		.build()
+		.unwrap();
+	Emitter::default()
+		.add_instructions(&buildinfo)
+		.unwrap()
+		.add_instructions(&gitinfo)
+		.unwrap()
+		.fail_on_error()
+		.emit()
+		.unwrap();
+
 	let sm =
 		std::env::var("SOURCEMOD").unwrap_or("../_external/alliedmodders/sourcemod".to_string());
 	let mm = std::env::var("METAMOD").unwrap_or("../_external/alliedmodders/mmsource".to_string());

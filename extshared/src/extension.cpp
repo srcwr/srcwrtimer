@@ -60,8 +60,8 @@ bool MyExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
 	if (!ResolveCoreIdent(error, maxlength)) return false;
 	if (!rust_sdk_on_load_wrapper(error, maxlength, late)) return false;
 	if (!Extension_OnLoad(error, maxlength)) return false;
-	sharesys->RegisterLibrary(myself, rust_conf_name());
-	rootconsole->ConsolePrint(">>> hello from %s!%s", rust_conf_name(), late ? " (late!)" : "");
+	sharesys->RegisterLibrary(myself, GetExtensionName());
+	rootconsole->ConsolePrint(">>> hello from %s %s%s", GetExtensionName(), GetExtensionVerString(), late ? " (late)" : "");
 	return true;
 }
 
