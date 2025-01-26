@@ -130,21 +130,6 @@ stock void SRCWR_LoadDefaultPlayerSettings(int client, const char[] settings_nam
 // stocks - SRCWR related
 //////////////////////////////////////////////////////////////////////////
 
-// TODO: Why have all these stocks?
-//  because IsClientSourceTv is unnecessary if we already filtered out
-//  fake clients with IsFakeClient....
-
-stock bool SRCWR_ClientInGame(int client)
-{
-	return client > 0 && client <= MaxClients && IsClientInGame(client);
-}
-// TODO: do we even want this?????
-stock bool SRCWR_IsRealPerson(int client)
-{
-	return client && IsClientInGame(client) && !IsFakeClient(client);
-}
-// IsClientSourceTV / IsPlayerAlive / IsClientInKickQueue
-
 stock bool SRCWR_GetHandles(char[] error="", int err_max=0)
 {
 	if (   !SRCWRJSON.GetHandles("timer_state", gJ_Timer, sizeof(gJ_Timer))
@@ -265,14 +250,6 @@ stock float NormalizeAngleNoNaN(float angle)
 	if (angle != angle) angle = 0.0; // try not to propogate NaN!
 	return angle;
 }
-// stolen from oblivious
-// will infinite loop if given bad floats so just don't do that!!!!
-stock float DangerousNormalizeAngle(float ang)
-{
-	while (ang > 180.0) ang -= 360.0;
-	while (ang < -180.0) ang += 360.0;
-	return ang;
-}
 
 //////////////////////////////////////////////////////////////////////////
 // natives - misc
@@ -358,9 +335,22 @@ forward void SRCWR_OnStop(int client);
 
 //forward Action SRCWR_OnStyleCommandPre(...) // TODO:???
 
+// TODO:
+// We have a bunch of these OnPlayerRunCmd forwards because different plugins need to inject functionality in different places.
+//
+//
+// Use `OnPlayerRunCmdPre()` (THE SOURCEMOD ONE! NOT SRCWR ONE!) for
+// Use `OnPlayerRunCmdPost()` (THE SOURCEMOD ONE! NOT SRCWR ONE!) for
+
+// Use this for
 forward Action SRCWR_OnPlayerRunCmdPre(int client, int& buttons, int& impulse, float vel[3], float angles[3], int& weapon, int& subtype, int& cmdnum, int& tickcount, int& seed, int mouse[2]);
-forward Action SRCWR_OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3], float angles[3], int& weapon, int& subtype, int& cmdnum, int& tickcount, int& seed, int mouse[2]);
+
+//forward Action SRCWR_OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3], float angles[3], int& weapon, int& subtype, int& cmdnum, int& tickcount, int& seed, int mouse[2]);
+
+// Called when SRCWR is finished with all of its logic inside `OnPlayerRunCmd()` but before it returns.
 forward Action SRCWR_OnPlayerRunCmdPost(int client, int& buttons, int& impulse, float vel[3], float angles[3], int& weapon, int& subtype, int& cmdnum, int& tickcount, int& seed, int mouse[2]);
+
+
 
 forward void SRCWR_OnProcessMovementPre(int client);
 forward void SRCWR_OnProcessMovementPost(int client);
@@ -378,6 +368,8 @@ forward void SRCWR_OnProcessMovementPost(int client);
 // When `result == Plugin_Continue` and `type == J_Bool`
 // TODO: Documentation...
 forward Action SRCWR_OnEditPlayerSettings(int client, const char[] key, bool is_being_toggled, const char[] value, J_Type type);
+
+forward void SRCWR_OnSettingsLoaded(int client);
 
 // TODO:
 //forward void SRCWR_OnChatConfigLoaded();

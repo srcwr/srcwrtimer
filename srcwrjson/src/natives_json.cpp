@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2022-2024 rtldg <rtldg@protonmail.com>
+// Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 #include "../../extshared/src/extension.h"
@@ -21,12 +21,7 @@ HandleType_t g_JSONType = 0;
 extern const sp_nativeinfo_t JSONNatives[];
 
 
-#define QUICK_HANDLE_CHECK(param, object) if (!(object = quickhandlecheck(ctx, param))) [[unlikely]] return 0;
-
 ///////////////////////////////////////////////////////////////////////////////////////
-
-void* quickhandlecheck(IPluginContext* ctx, cell_t param);
-cell_t HandleOrDestroy(IPluginContext* ctx, void* object);
 
 class SRCWRJSONHello : public ISRCWRJSONHello
 {
@@ -42,39 +37,38 @@ public:
 public:
 	Handle_t MakeJSONObject(IPluginContext* ctx, const char* s, int len)
 	{
-		return HandleOrDestroy(ctx, rust_SRCWRJSON_FromString(0, s, len));
+		COMPAT_CHECK();
+		return g_MyExtension.HandleOrDestroy(ctx, rust_SRCWRJSON_FromString(0, s, len), g_JSONType);
 	}
 	void* GetUnsafePointer(IPluginContext* ctx, cell_t handy)
 	{
 		void* object;
-		QUICK_HANDLE_CHECK(handy, object);
+		GET_HANDLE(handy, object, g_JSONType);
 		return rust_SRCWRJSON_UnsafePointer(object);
 	}
 };
-
-class JSONTypeHandler : public IHandleTypeDispatch
-{
-public:
-	void OnHandleDestroy(HandleType_t type, void* object)
-	{
-		if (type == g_JSONType)
-			rust_handle_destroy_SRCWRJSON(object);
-	}
-	bool GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size)
-	{
-		if (type == g_JSONType)
-			return rust_handle_size_SRCWRJSON(object, size);
-		return false;
-	}
-};
-
-JSONTypeHandler g_JSONTypeHandler;
 SRCWRJSONHello g_SRCWRJSONHello;
+
+
+void MyExtension::OnHandleDestroy(HandleType_t type, void* object)
+{
+	if (type == g_JSONType)
+		rust_handle_destroy_SRCWRJSON(object);
+}
+bool MyExtension::GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size)
+{
+	if (type == g_JSONType)
+		return rust_handle_size_SRCWRJSON(object, size);
+	return false;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
 bool Extension_OnLoad(char* error, size_t maxlength)
 {
+	g_MyExtension.set_compat_version(1);
+
 	if (!sharesys->AddInterface(myself, &g_SRCWRJSONHello))
 	{
 		smutils->Format(error, maxlength, "Failed to add SRCWRJSONHello interface (to be used by SRCWRHTTP)");
@@ -85,7 +79,7 @@ bool Extension_OnLoad(char* error, size_t maxlength)
 
 	g_JSONType = g_pHandleSys->CreateType(
 		  "SRCWRJSON"
-		, &g_JSONTypeHandler
+		, &g_MyExtension
 		, 0
 		, NULL
 		, NULL
@@ -104,59 +98,25 @@ void Extension_OnUnload()
 void Extension_OnAllLoaded() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// Small util functions
-
-void* quickhandlecheck(IPluginContext* ctx, cell_t param)
-{
-	HandleError err;
-	HandleSecurity sec(ctx->GetIdentity(), myself->GetIdentity());
-	void* object;
-
-	if ((err = handlesys->ReadHandle(param, g_JSONType, &sec, &object))
-		!= HandleError_None) [[unlikely]]
-	{
-		ctx->ReportError("Invalid handle %x (error: %d)", param, err);
-		return NULL;
-	}
-
-	return object;
-}
-
-cell_t HandleOrDestroy(IPluginContext* ctx, void* object)
-{
-	if (!object) return 0;
-
-	auto handle = handlesys->CreateHandle(
-		  g_JSONType
-		, object
-		, ctx->GetIdentity()
-		, myself->GetIdentity()
-		, NULL
-	);
-
-	if (handle == 0) [[unlikely]]
-		rust_handle_destroy_SRCWRJSON(object);
-
-	return handle;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////
 
 static cell_t N_SRCWRJSON_SRCWRJSON(IPluginContext* ctx, const cell_t* params)
 {
+	COMPAT_CHECK();
 	bool array = params[1] != 0;
-	return HandleOrDestroy(ctx, rust_SRCWRJSON_SRCWRJSON(array));
+	return g_MyExtension.HandleOrDestroy(ctx, rust_SRCWRJSON_SRCWRJSON(array), g_JSONType);
 }
 
 static cell_t N_SRCWRJSON_Clone(IPluginContext* ctx, const cell_t* params)
 {
+	COMPAT_CHECK();
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
-	return HandleOrDestroy(ctx, rust_SRCWRJSON_Clone(object));
+	GET_HANDLE(params[1], object, g_JSONType);
+	return g_MyExtension.HandleOrDestroy(ctx, rust_SRCWRJSON_Clone(object), g_JSONType);
 }
 
 static cell_t N_SRCWRJSON_GetHandles(IPluginContext* ctx, const cell_t* params)
 {
+	COMPAT_CHECK();
 	char* name;
 	ctx->LocalToString(params[1], &name);
 	Handle_t* handles;
@@ -233,7 +193,7 @@ static cell_t N_SRCWRJSON_GetHandles(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_ToFile(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	char* filename;
 	(void)ctx->LocalToString(params[2], &filename);
 	int flags = params[3];
@@ -248,7 +208,7 @@ static cell_t N_SRCWRJSON_ToFile(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_ToFileHandle(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	cell_t filehandle = params[2];
 	int flags = params[3];
 
@@ -273,7 +233,7 @@ static cell_t N_SRCWRJSON_ToFileHandle(IPluginContext* ctx, const cell_t* params
 static cell_t N_SRCWRJSON_ToString(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	char* buffer;
 	(void)ctx->LocalToString(params[2], &buffer);
 	cell_t buffer_local_addr = params[2]; // [sic]
@@ -287,16 +247,18 @@ static cell_t N_SRCWRJSON_ToString(IPluginContext* ctx, const cell_t* params)
 
 static cell_t N_SRCWRJSON_FromFile(IPluginContext* ctx, const cell_t* params)
 {
+	COMPAT_CHECK();
 	char* filename;
 	(void)ctx->LocalToString(params[1], &filename);
 	int flags = params[2];
 	char filenamebuf[PLATFORM_MAX_PATH];
 	smutils->BuildPath(Path_Game, filenamebuf, sizeof(filenamebuf), "%s", filename); // TODO: Error check?
-	return HandleOrDestroy(ctx, rust_SRCWRJSON_FromFile(filenamebuf, flags));
+	return g_MyExtension.HandleOrDestroy(ctx, rust_SRCWRJSON_FromFile(filenamebuf, flags), g_JSONType);
 }
 
 static cell_t N_SRCWRJSON_FromFileHandle(IPluginContext* ctx, const cell_t* params)
 {
+	COMPAT_CHECK();
 	cell_t filehandle = params[1];
 	int flags = params[2];
 
@@ -311,31 +273,33 @@ static cell_t N_SRCWRJSON_FromFileHandle(IPluginContext* ctx, const cell_t* para
 		return 0;
 	}
 
-	return HandleOrDestroy(ctx, rust_SRCWRJSON_FromFileHandle(fileobject, flags));
+	return g_MyExtension.HandleOrDestroy(ctx, rust_SRCWRJSON_FromFileHandle(fileobject, flags), g_JSONType);
 }
 
 static cell_t N_SRCWRJSON_FromString1(IPluginContext* ctx, const cell_t* params)
 {
+	COMPAT_CHECK();
 	char* s;
 	(void)ctx->LocalToString(params[1], &s);
 	int end = params[2];
 	int flags = params[3];
-	return HandleOrDestroy(ctx, rust_SRCWRJSON_FromString(flags, s, end));
+	return g_MyExtension.HandleOrDestroy(ctx, rust_SRCWRJSON_FromString(flags, s, end), g_JSONType);
 }
 
 static cell_t N_SRCWRJSON_FromString2(IPluginContext* ctx, const cell_t* params)
 {
+	COMPAT_CHECK();
 	int flags = params[1];
 	char* fmt;
 	(void)ctx->LocalToString(params[2], &fmt);
 	MAYBE_FORMAT(2, fmt);
-	return HandleOrDestroy(ctx, rust_SRCWRJSON_FromString(flags, fmt, fmtlen));
+	return g_MyExtension.HandleOrDestroy(ctx, rust_SRCWRJSON_FromString(flags, fmt, fmtlen), g_JSONType);
 }
 
 static cell_t N_SRCWRJSON_Has(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToString(params[3], &key);
@@ -346,7 +310,7 @@ static cell_t N_SRCWRJSON_Has(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetType(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToStringNULL(params[3], &key);
@@ -357,14 +321,14 @@ static cell_t N_SRCWRJSON_GetType(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_Type_get(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	return rust_SRCWRJSON_GetType(object, 0, NULL, 0);
 }
 
 static cell_t N_SRCWRJSON_IsArray(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToStringNULL(params[3], &key);
@@ -375,7 +339,7 @@ static cell_t N_SRCWRJSON_IsArray(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_len(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToStringNULL(params[3], &key);
@@ -386,36 +350,36 @@ static cell_t N_SRCWRJSON_len(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_Length_get(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	return rust_SRCWRJSON_len(object, 0, NULL, 0);
 }
 
 static cell_t N_SRCWRJSON_Get(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToStringNULL(params[3], &key);
 	MAYBE_FORMAT(3, key);
-	return HandleOrDestroy(ctx, rust_SRCWRJSON_Get(object, flags, key, fmtlen));
+	return g_MyExtension.HandleOrDestroy(ctx, rust_SRCWRJSON_Get(object, flags, key, fmtlen), g_JSONType);
 }
 
 static cell_t N_SRCWRJSON_GetIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int idx = params[2];
 	int flags = params[3];
-	return HandleOrDestroy(ctx, rust_SRCWRJSON_GetIdx(object, flags, idx));
+	return g_MyExtension.HandleOrDestroy(ctx, rust_SRCWRJSON_GetIdx(object, flags, idx), g_JSONType);
 }
 
 static cell_t N_SRCWRJSON_Set(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	void* other;
-	QUICK_HANDLE_CHECK(params[2], other);
+	GET_HANDLE(params[2], other, g_JSONType);
 	int flags = params[3];
 	char* key;
 	(void)ctx->LocalToStringNULL(params[4], &key);
@@ -426,9 +390,9 @@ static cell_t N_SRCWRJSON_Set(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	void* other;
-	QUICK_HANDLE_CHECK(params[2], other);
+	GET_HANDLE(params[2], other, g_JSONType);
 	int flags = params[3];
 	int idx = params[4];
 	return rust_SRCWRJSON_SetIdx(object, other, flags, idx);
@@ -437,7 +401,7 @@ static cell_t N_SRCWRJSON_SetIdx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetFromString(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	char* s;
 	(void)ctx->LocalToString(params[2], &s);
 	int end = params[3];
@@ -451,7 +415,7 @@ static cell_t N_SRCWRJSON_SetFromString(IPluginContext* ctx, const cell_t* param
 static cell_t N_SRCWRJSON_SetFromStringIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	char* s;
 	(void)ctx->LocalToString(params[2], &s);
 	int end = params[3];
@@ -463,7 +427,7 @@ static cell_t N_SRCWRJSON_SetFromStringIdx(IPluginContext* ctx, const cell_t* pa
 static cell_t N_SRCWRJSON_Remove(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToString(params[3], &key);
@@ -474,7 +438,7 @@ static cell_t N_SRCWRJSON_Remove(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_RemoveIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	int idx = params[3];
 	return rust_SRCWRJSON_RemoveIdx(object, flags, idx);
@@ -483,7 +447,7 @@ static cell_t N_SRCWRJSON_RemoveIdx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_RemoveAllWithSelector(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	char* selectorpath;
 	(void)ctx->LocalToString(params[2], &selectorpath);
 	int flags = params[3];
@@ -496,7 +460,7 @@ static cell_t N_SRCWRJSON_RemoveAllWithSelector(IPluginContext* ctx, const cell_
 static cell_t N_SRCWRJSON_Clear(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToStringNULL(params[3], &key);
@@ -507,7 +471,7 @@ static cell_t N_SRCWRJSON_Clear(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_ReplaceCell(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int newcell = params[2];
 	int flags = params[3];
 	char* key;
@@ -519,7 +483,7 @@ static cell_t N_SRCWRJSON_ReplaceCell(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_ReplaceCellIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int newcell = params[2];
 	int flags = params[3];
 	int idx = params[4];
@@ -529,12 +493,12 @@ static cell_t N_SRCWRJSON_ReplaceCellIdx(IPluginContext* ctx, const cell_t* para
 static cell_t N_SRCWRJSON_SetZss(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToString(params[3], &key);
 	void* other;
-	QUICK_HANDLE_CHECK(params[4], other);
+	GET_HANDLE(params[4], other, g_JSONType);
 	char* key2;
 	(void)ctx->LocalToString(params[5], &key2);
 	MAYBE_FORMAT(5, key2);
@@ -544,7 +508,7 @@ static cell_t N_SRCWRJSON_SetZss(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetStruct(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	unsigned* buf;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&buf);
 	char* format;
@@ -559,7 +523,7 @@ static cell_t N_SRCWRJSON_GetStruct(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetStructIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	unsigned* buf;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&buf);
 	char* format;
@@ -572,7 +536,7 @@ static cell_t N_SRCWRJSON_GetStructIdx(IPluginContext* ctx, const cell_t* params
 static cell_t N_SRCWRJSON_SetStruct(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	unsigned* buf;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&buf);
 	char* format;
@@ -587,7 +551,7 @@ static cell_t N_SRCWRJSON_SetStruct(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetStructIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	unsigned* buf;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&buf);
 	char* format;
@@ -600,7 +564,7 @@ static cell_t N_SRCWRJSON_SetStructIdx(IPluginContext* ctx, const cell_t* params
 static cell_t N_SRCWRJSON_GetCell(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToString(params[3], &key);
@@ -611,7 +575,7 @@ static cell_t N_SRCWRJSON_GetCell(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetCellIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	int idx = params[3];
 	return rust_SRCWRJSON_GetCellIdx(object, flags, idx);
@@ -620,7 +584,7 @@ static cell_t N_SRCWRJSON_GetCellIdx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetCell(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int value = params[2];
 	int flags = params[3];
 	char* key;
@@ -632,7 +596,7 @@ static cell_t N_SRCWRJSON_SetCell(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetCellIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int value = params[2];
 	int flags = params[3];
 	int idx = params[4];
@@ -642,7 +606,7 @@ static cell_t N_SRCWRJSON_SetCellIdx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetF32(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToString(params[3], &key);
@@ -653,7 +617,7 @@ static cell_t N_SRCWRJSON_GetF32(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetF32Idx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	int idx = params[3];
 	return rust_SRCWRJSON_GetF32Idx(object, flags, idx);
@@ -662,7 +626,7 @@ static cell_t N_SRCWRJSON_GetF32Idx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetF32(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	float value = sp_ctof(params[2]);
 	int flags = params[3];
 	char* key;
@@ -674,7 +638,7 @@ static cell_t N_SRCWRJSON_SetF32(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetF32Idx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	float value = sp_ctof(params[2]);
 	int flags = params[3];
 	int idx = params[4];
@@ -684,7 +648,7 @@ static cell_t N_SRCWRJSON_SetF32Idx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetBool(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToString(params[3], &key);
@@ -695,7 +659,7 @@ static cell_t N_SRCWRJSON_GetBool(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetBoolIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	int idx = params[3];
 	return rust_SRCWRJSON_GetBoolIdx(object, flags, idx);
@@ -704,7 +668,7 @@ static cell_t N_SRCWRJSON_GetBoolIdx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetBool(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	bool value = params[2] != 0;
 	int flags = params[3];
 	char* key;
@@ -716,7 +680,7 @@ static cell_t N_SRCWRJSON_SetBool(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetBoolIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	bool value = params[2] != 0;
 	int flags = params[3];
 	int idx = params[4];
@@ -726,7 +690,7 @@ static cell_t N_SRCWRJSON_SetBoolIdx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_ToggleBool(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToString(params[3], &key);
@@ -737,7 +701,7 @@ static cell_t N_SRCWRJSON_ToggleBool(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_ToggleBoolIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	int idx = params[3];
 	return rust_SRCWRJSON_ToggleBoolIdx(object, flags, idx);
@@ -746,7 +710,7 @@ static cell_t N_SRCWRJSON_ToggleBoolIdx(IPluginContext* ctx, const cell_t* param
 static cell_t N_SRCWRJSON_GetI64(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int64_t* buffer;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&buffer);
 	int flags = params[3];
@@ -759,7 +723,7 @@ static cell_t N_SRCWRJSON_GetI64(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetI64Idx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int64_t* buffer;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&buffer);
 	int flags = params[3];
@@ -770,7 +734,7 @@ static cell_t N_SRCWRJSON_GetI64Idx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetI64(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int64_t* value;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&value);
 	int flags = params[3];
@@ -783,7 +747,7 @@ static cell_t N_SRCWRJSON_SetI64(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetI64Idx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int64_t* value;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&value);
 	int flags = params[3];
@@ -794,7 +758,7 @@ static cell_t N_SRCWRJSON_SetI64Idx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetF64(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	double* buffer;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&buffer);
 	int flags = params[3];
@@ -807,7 +771,7 @@ static cell_t N_SRCWRJSON_GetF64(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetF64Idx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	double* buffer;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&buffer);
 	int flags = params[3];
@@ -818,7 +782,7 @@ static cell_t N_SRCWRJSON_GetF64Idx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetF64(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	double* value;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&value);
 	int flags = params[3];
@@ -831,7 +795,7 @@ static cell_t N_SRCWRJSON_SetF64(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetF64Idx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	double* value;
 	(void)ctx->LocalToPhysAddr(params[2], (cell_t**)&value);
 	int flags = params[3];
@@ -842,7 +806,7 @@ static cell_t N_SRCWRJSON_SetF64Idx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_IsNull(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToString(params[3], &key);
@@ -853,7 +817,7 @@ static cell_t N_SRCWRJSON_IsNull(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_IsNullIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	int idx = params[3];
 	return rust_SRCWRJSON_IsNullIdx(object, flags, idx);
@@ -862,7 +826,7 @@ static cell_t N_SRCWRJSON_IsNullIdx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetNull(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
 	(void)ctx->LocalToString(params[3], &key);
@@ -873,7 +837,7 @@ static cell_t N_SRCWRJSON_SetNull(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetNullIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	int idx = params[3];
 	return rust_SRCWRJSON_SetNullIdx(object, flags, idx);
@@ -882,7 +846,7 @@ static cell_t N_SRCWRJSON_SetNullIdx(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetString(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	char* buffer;
 	(void)ctx->LocalToString(params[2], &buffer);
 	cell_t buffer_local_addr = params[2]; // [sic]
@@ -897,7 +861,7 @@ static cell_t N_SRCWRJSON_GetString(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_GetStringIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	char* buffer;
 	(void)ctx->LocalToString(params[2], &buffer);
 	cell_t buffer_local_addr = params[2]; // [sic]
@@ -910,7 +874,7 @@ static cell_t N_SRCWRJSON_GetStringIdx(IPluginContext* ctx, const cell_t* params
 static cell_t N_SRCWRJSON_SetString(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	char* value;
 	(void)ctx->LocalToString(params[2], &value);
 	int end = params[3];
@@ -924,7 +888,7 @@ static cell_t N_SRCWRJSON_SetString(IPluginContext* ctx, const cell_t* params)
 static cell_t N_SRCWRJSON_SetStringIdx(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	char* value;
 	(void)ctx->LocalToString(params[2], &value);
 	int end = params[3];
@@ -936,7 +900,7 @@ static cell_t N_SRCWRJSON_SetStringIdx(IPluginContext* ctx, const cell_t* params
 static cell_t N_SRCWRJSON_FillKeys(IPluginContext* ctx, const cell_t* params)
 {
 	void* object;
-	QUICK_HANDLE_CHECK(params[1], object);
+	GET_HANDLE(params[1], object, g_JSONType);
 	void* cellarray;
 	HandleError err;
 	if ((err = ReadHandleCoreIdent(params[2], g_ArrayListType, &cellarray))

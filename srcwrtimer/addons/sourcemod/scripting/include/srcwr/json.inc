@@ -357,6 +357,11 @@ native int AddF64(int client, const char[] key, any[] value);
 }
 
 
+
+
+public int srcwrjson_compat_version = 1;
+
+
 public Extension __ext_srcwrjson = {
 	name = "srcwrjson",
 	file = "srcwrjson.ext",

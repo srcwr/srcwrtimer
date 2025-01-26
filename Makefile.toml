@@ -298,6 +298,7 @@ args = ["zigbuild", "--release", "--target", "i686-unknown-linux-gnu.2.26"]
 toolchain = "nightly"
 command = "cargo"
 # Helps with getting some debug information passed in...
+# TODO: Figure out some build.rs place to put these in that hits both C/C++ & Rust...
 env = { "CFLAGS" = "/Zi /FS", "CXXFLAGS" = "/Zi /FS" }
 args = ["build", "--release", "--target", "i686-pc-windows-msvc"]
 

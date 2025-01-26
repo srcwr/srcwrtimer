@@ -18,6 +18,10 @@ extern IFileSystem *filesystem;
 #endif
 
 
+class MyExtension;
+extern MyExtension g_MyExtension;
+
+
 inline const char** GlobalsMapname()
 {
 #ifdef SOURCE_ENGINE
@@ -44,12 +48,30 @@ inline const char** GlobalsMapname()
 	}
 
 
-bool is_plugin_compatible(IPluginContext* ctx, const char* pubvarname, cell_t required);
-cell_t* get_plugin_pubvar(IPluginRuntime* rt, const char* name);
+#define GET_HANDLE(param, o, htype) if (!(o = g_MyExtension.get_handle(ctx, param, htype))) [[unlikely]] return 0;
+
+#define COMPAT_CHECK() if (!g_MyExtension.is_plugin_compatible(ctx)) [[unlikely]] return 0;
 
 
-class MyExtension : public SDKExtension
+class MyExtension :
+	  public SDKExtension
+	//, public SMInterface // I don't think this can be done nicely...
+	, public IHandleTypeDispatch
 {
+public: // MY SHIT!!!
+	MyExtension() : compat_version(-1) {}
+	void set_compat_version(cell_t required) { this->compat_version = required; }
+	bool is_plugin_compatible(IPluginContext* ctx);
+	void* get_handle(IPluginContext* ctx, cell_t param, HandleType_t htype);
+	cell_t* get_pubvar(IPluginRuntime* rt, const char* name);
+	cell_t HandleOrDestroy(IPluginContext* ctx, void* object, HandleType_t htype);
+private:
+	cell_t compat_version;
+
+public: //IHandleTypeDispatch
+	virtual void OnHandleDestroy(HandleType_t type, void* object);
+	virtual bool GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size);
+
 public:
 	/**
 	 * @brief This is called after the initial loading sequence has been processed.

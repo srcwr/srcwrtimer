@@ -39,31 +39,26 @@ public:
 	}
 };
 
-class HandleHandler : public IHandleTypeDispatch
-{
-public:
-	void OnHandleDestroy(HandleType_t type, void* object)
-	{
-		if (type == g_ClosestPosType) {
-			ClosestPosObject* closestpos = (ClosestPosObject*)object;
-			delete closestpos;
-		}
-	}
-	bool GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size)
-	{
-		if (type == g_ClosestPosType) {
-			ClosestPosObject* closestpos = (ClosestPosObject*)object;
-			*size = sizeof(*closestpos)
-			      + sizeof(*closestpos->data)
-			      + (sizeof(Point) * closestpos->data->size());
-			      + nanoflann_shim_get_used_memory(closestpos->container);
-			return true;
-		}
-		return false;
-	}
-};
 
-HandleHandler g_HandleHandler;
+void MyExtension::OnHandleDestroy(HandleType_t type, void* object)
+{
+	if (type == g_ClosestPosType) {
+		ClosestPosObject* closestpos = (ClosestPosObject*)object;
+		delete closestpos;
+	}
+}
+bool MyExtension::GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size)
+{
+	if (type == g_ClosestPosType) {
+		ClosestPosObject* closestpos = (ClosestPosObject*)object;
+		*size = sizeof(*closestpos)
+		      + sizeof(*closestpos->data)
+		      + (sizeof(Point) * closestpos->data->size());
+		      + nanoflann_shim_get_used_memory(closestpos->container);
+		return true;
+	}
+	return false;
+}
 
 
 bool Extension_OnLoad(char* error, size_t maxlength)
@@ -72,7 +67,7 @@ bool Extension_OnLoad(char* error, size_t maxlength)
 
 	g_ClosestPosType = g_pHandleSys->CreateType(
 		  "ClosestPos"
-		, &g_HandleHandler
+		, &g_MyExtension
 		, 0
 		, NULL
 		, NULL

@@ -18,25 +18,19 @@ HandleType_t g_ClosestPosType = 0;
 extern const sp_nativeinfo_t ReplayNatives[];
 
 
-class HandleHandler : public IHandleTypeDispatch
+void MyExtension::OnHandleDestroy(HandleType_t type, void* object)
 {
-public:
-	void OnHandleDestroy(HandleType_t type, void* object)
-	{
-		if (type == g_ClosestPosType) {
-			rust_handle_destroy_ClosestPos(object);
-		}
+	if (type == g_ClosestPosType) {
+		rust_handle_destroy_ClosestPos(object);
 	}
-	bool GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size)
-	{
-		if (type == g_ClosestPosType) {
-			return rust_handle_size_ClosestPos(object, size);
-		}
-		return false;
+}
+bool MyExtension::GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size)
+{
+	if (type == g_ClosestPosType) {
+		return rust_handle_size_ClosestPos(object, size);
 	}
-};
-
-HandleHandler g_HandleHandler;
+	return false;
+}
 
 
 bool Extension_OnLoad(char* error, size_t maxlength)
@@ -45,7 +39,7 @@ bool Extension_OnLoad(char* error, size_t maxlength)
 
 	g_ClosestPosType = g_pHandleSys->CreateType(
 		  "ClosestPos"
-		, &g_HandleHandler
+		, &g_MyExtension
 		, 0
 		, NULL
 		, NULL

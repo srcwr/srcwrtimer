@@ -7,6 +7,11 @@
 
 extern const sp_nativeinfo_t SyncerNatives[];
 
+
+void MyExtension::OnHandleDestroy(HandleType_t type, void* object) {}
+bool MyExtension::GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size) { return false; }
+
+
 bool Extension_OnLoad(char* error, size_t maxlength)
 {
 	sharesys->AddNatives(myself, SyncerNatives);

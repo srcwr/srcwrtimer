@@ -13,10 +13,32 @@ use sha1::Digest;
 use sha1::Sha1;
 
 /*
-fn dirwalker() {
-  let bytes = include_bytes!("dummy.nav");
-  let _ = std::fs::hard_link("dummy.nav", "new.nav");
-}
+The mean byte-length of mapnames on fastdl.me is around 15.48 to 15.56, depending on the list used.
+Using the snippet below, we can also see that it starts falling off after 20 bytes:
+	import numpy as np
+	lines = open("processed/main.fastdl.me/69.html.txt", "r", encoding="utf8").read().strip().splitlines()
+	lengths = np.array([len(line.strip()) for line in lines])
+	unique, counts = np.unique(lengths, return_counts=True)
+	print(np.asarray((unique, counts)).T)
+Also the longest map name is 57 bytes.
+
+How we use the mapchooser lists:
+	list.Length
+	list.GetString(idx, s, sizeof(s))
+	list.FindString(s)
+	list.Clear()
+	list.PushString(s)
+	list.SwapAt(i, --length) & list.Resize(length) # a swap_remove() for removing excludes
+	list.SortCustom(SlowSortThatSkipsFolders)
+	ReadMapList(list, serial, "default", MAPLIST_FLAG_CLEARARRAY) # sourcemod native
+
+A crate I can use so I don't have to write one myself that fits most of these:
+	https://docs.rs/compact_strings/latest/compact_strings/struct.CompactStrings.html
+This one exists too but doesn't provide removing strings:
+	https://docs.rs/packed_str/latest/packed_str/struct.PackedStr.html
+We could also look into an arena and then store the string slices in a Vec:
+	https://docs.rs/bumpalo/latest/bumpalo/struct.Bump.html#method.alloc_str
+	https://docs.rs/typed-arena/latest/typed_arena/struct.Arena.html#method.alloc_str
 */
 
 #[unsafe(no_mangle)]

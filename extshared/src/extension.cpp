@@ -13,6 +13,7 @@
 MyExtension g_MyExtension;
 SDKExtension *g_pExtensionIface = &g_MyExtension;
 
+
 // natives.cpp from each crate provides these...
 bool Extension_OnLoad(char* error, size_t maxlength);
 void Extension_OnUnload();
@@ -30,18 +31,7 @@ IFileSystem *filesystem = NULL;
 // asdf
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool is_plugin_compatible(IPluginContext* ctx, const char* pubvarname, cell_t required)
-{
-	cell_t* pubvar = get_plugin_pubvar(ctx->GetRuntime(), pubvarname);
-	if (!pubvar || *pubvar != required) [[unlikely]]
-	{
-		ctx->ReportError("Plugin is not compatible with extension %s! Update includes and recompile it! (%s (%d) should be %d)", rust_conf_name(), pubvarname, pubvar ? *pubvar : -1, required);
-		return false;
-	}
-	return true;
-}
-
-cell_t* get_plugin_pubvar(IPluginRuntime* rt, const char* name)
+cell_t* MyExtension::get_pubvar(IPluginRuntime* rt, const char* name)
 {
 	uint32_t idx;
 	int err = rt->FindPubvarByName(name, &idx);
@@ -49,6 +39,70 @@ cell_t* get_plugin_pubvar(IPluginRuntime* rt, const char* name)
 	cell_t *pubvar, local_addr;
 	rt->GetPubvarAddrs(idx, &local_addr, &pubvar);
 	return pubvar;
+}
+
+bool MyExtension::is_plugin_compatible(IPluginContext* ctx)
+{
+	static std::string pubvarname = std::string(GetExtensionName()) + "_compat_version";
+
+	cell_t* pubvar = get_pubvar(ctx->GetRuntime(), pubvarname.c_str());
+	if (!pubvar || *pubvar != this->compat_version) [[unlikely]]
+	{
+		ctx->ReportError("Plugin is not compatible with extension %s! Update includes and recompile it! (%s (%d) should be %d)", GetExtensionName(), pubvarname.c_str(), pubvar ? *pubvar : -1, this->compat_version);
+		return false;
+	}
+	return true;
+}
+
+void* MyExtension::get_handle(IPluginContext* ctx, cell_t param, HandleType_t htype)
+{
+	HandleError err;
+	HandleSecurity sec(ctx->GetIdentity(), myself->GetIdentity());
+	void* object;
+
+	if ((err = handlesys->ReadHandle(param, htype, &sec, &object))
+	    != HandleError_None) [[unlikely]]
+	{
+		ctx->ReportError("Invalid handle %x (error: %d)", param, err);
+		return NULL;
+	}
+
+	return object;
+}
+
+cell_t MyExtension::HandleOrDestroy(IPluginContext* ctx, void* object, HandleType_t htype)
+{
+	if (!object) return 0;
+	auto handle = 0;
+
+	if (ctx)
+	{
+		handle = handlesys->CreateHandle(
+			  htype
+			, object
+			, ctx->GetIdentity()
+			, myself->GetIdentity()
+			, NULL
+		);
+	}
+	else
+	{
+		HandleSecurity sec(NULL, myself->GetIdentity());
+		handle = handlesys->CreateHandleEx(
+			  htype
+			, object
+			, &sec
+			, NULL
+			, NULL
+		);
+	}
+
+	// printf("Created %s handle (0x%X) / (0x%X)\n", isresp ? "response" : "REQ", handle, object);
+
+	if (handle == 0) [[unlikely]]
+		this->OnHandleDestroy(htype, object);
+
+	return handle;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

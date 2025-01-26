@@ -1,5 +1,8 @@
 name: Build everything
 
+# TODO: Print hashes to ghactions "summary" info and/or setup some of the ghactions attestation shit...
+#       Steal from this maybe: https://github.com/zhongfly/mpv-winbuild/blob/main/.github/workflows/mpv.yml
+
 # TODO: add another job that only builds sourcepawn files when only those are touched
 on:
   push:

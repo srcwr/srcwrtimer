@@ -1542,6 +1542,7 @@ dependencies = [
  "extshared",
  "extshared_build_helper",
  "hex",
+ "libc",
  "sha1",
  "smol_str",
 ]

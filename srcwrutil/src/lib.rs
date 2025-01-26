@@ -3,6 +3,7 @@
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 mod natives_util;
+mod string_block;
 
 extshared::smext_conf_boilerplate_extension_info!();
 

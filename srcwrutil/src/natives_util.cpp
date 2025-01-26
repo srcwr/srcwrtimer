@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2022-2024 rtldg <rtldg@protonmail.com>
+// Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 
@@ -26,23 +26,19 @@
 HandleType_t g_SmolStringListType = 0;
 extern const sp_nativeinfo_t UtilNatives[];
 
-class HandleHandler : public IHandleTypeDispatch
-{
-public:
-	void OnHandleDestroy(HandleType_t type, void* object)
-	{
-		if (type == g_SmolStringListType)
-			rust_handle_destroy_SmolStringList(object);
-	}
-	bool GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size)
-	{
-		if (type == g_SmolStringListType)
-			return rust_handle_size_SmolStringList(object, size);
-		return false;
-	}
-};
 
-HandleHandler g_HandleHandler;
+void MyExtension::OnHandleDestroy(HandleType_t type, void* object)
+{
+	if (type == g_SmolStringListType)
+		rust_handle_destroy_SmolStringList(object);
+}
+bool MyExtension::GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size)
+{
+	if (type == g_SmolStringListType)
+		return rust_handle_size_SmolStringList(object, size);
+	return false;
+}
+
 
 IGameConfig *g_GameConfig = NULL;
 CDetour *g_CDownloadListGenerator_OnResourcePrecachedFullPath_detour = NULL;
@@ -160,7 +156,7 @@ bool Extension_OnLoad(char* error, size_t maxlength)
 
 	g_SmolStringListType = g_pHandleSys->CreateType(
 		  "SmolStringList"
-		, &g_HandleHandler
+		, &g_MyExtension
 		, 0
 		, NULL
 		, NULL
@@ -182,74 +178,8 @@ void Extension_OnUnload()
 
 void Extension_OnAllLoaded() {}
 
-cell_t HandleOrDestroy(IPluginContext* ctx, void* object, HandleType_t htype)
-{
-	if (!object) return 0;
-
-	auto handle = handlesys->CreateHandle(
-		  htype
-		, object
-		, ctx->GetIdentity()
-		, myself->GetIdentity()
-		, NULL
-	);
-
-	if (handle == 0)
-		g_HandleHandler.OnHandleDestroy(htype, object);
-
-	return handle;
-}
-
-#if 0
-// edited from https://github.com/alliedmodders/sourcemod/blob/dbec0b165c7ed70acdbb03b3b471de8a25f3ec2b/core/logic/PluginSys.cpp#L266-L293
-void print_plugin_info(IPluginContext* ctx)
-{
-	printf("file: %s\n", ctx->GetRuntime()->GetFilename());
-
-	uint32_t idx;
-	int err = ctx->FindPubvarByName("myinfo", &idx);
-
-	if (err == SP_ERROR_NONE) {
-		struct sm_plugininfo_c_t
-		{
-			cell_t name;
-			cell_t description;
-			cell_t author;
-			cell_t version;
-			cell_t url;
-		};
-		sm_plugininfo_c_t *cinfo;
-		cell_t local_addr;
-
-		auto update_field = [ctx](cell_t addr, std::string *dest) {
-			const char* ptr;
-			if (ctx->LocalToString(addr, (char **)&ptr) == SP_ERROR_NONE)
-				*dest = ptr;
-			else
-				*dest = "";
-		};
-
-		std::string info_name, info_description, info_author, info_version, info_url;
-
-		ctx->GetPubvarAddrs(idx, &local_addr, (cell_t **)&cinfo);
-		update_field(cinfo->name, &info_name);
-		update_field(cinfo->description, &info_description);
-		update_field(cinfo->author, &info_author);
-		update_field(cinfo->version, &info_version);
-		update_field(cinfo->url, &info_url);
-
-		printf("  name: %s\n  description: %s\n  author: %s\n  version: %s\n  url: %s\n",
-			info_name.c_str(), info_description.c_str(), info_author.c_str(), info_version.c_str(), info_url.c_str());
-	}
-}
-#endif
-
 static cell_t N_SRCWRUTIL_GetSHA1_File(IPluginContext* ctx, const cell_t* params)
 {
-#if 0
-	print_plugin_info(ctx);
-#endif
-
 	char* buffer;
 	(void)ctx->LocalToString(params[1], &buffer);
 	cell_t filehandle = params[2];

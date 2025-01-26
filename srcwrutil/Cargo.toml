@@ -17,5 +17,6 @@ extshared_build_helper = { path = "../extshared_build_helper" }
 [dependencies]
 extshared = { path = "../extshared" }
 hex = "0.4"
+libc = "0.2"
 sha1 = "0.10"
 smol_str = "0.3"

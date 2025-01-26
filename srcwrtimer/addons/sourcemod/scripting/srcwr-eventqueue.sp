@@ -56,6 +56,8 @@ enum struct event_t
 //////////////////////////////////////////////////////////////////////////
 
 bool gB_Late = false;
+bool gB_IsFakeClient[CSS_MAXPLAYERS+1];
+bool gB_IsClientInGame[CSS_MAXPLAYERS+1];
 
 Handle g_hFindEntityByName;
 int g_iRefOffset;
@@ -87,9 +89,14 @@ public void OnPluginStart()
 
 		for (int i = 1, max = MaxClients; i <= max; ++i)
 		{
-			if (IsClientInGame(i) && !gJ_Timer[i].Has(0, "eventqueue"))
+			if (IsClientConnected(i))
 			{
-				OnClientPutInServer(i);
+				OnClientConnected(i);
+
+				if (IsClientInGame(i))
+				{
+					OnClientPutInServer(i);
+				}
 			}
 		}
 	}
@@ -128,9 +135,24 @@ public Action Hook_Button_OnTakeDamage(int victim, int& attacker, int& inflictor
 // forwards - clients
 //////////////////////////////////////////////////////////////////////////
 
+public void OnClientConnected(int client)
+{
+	gB_IsFakeClient[client] = IsFakeClient(client);
+}
+
+public void OnClientDisconnect(int client)
+{
+	gB_IsClientInGame[client] = false;
+}
+
 public void OnClientPutInServer(int client)
 {
-	if (IsFakeClient(client))
+	gB_IsClientInGame[client] = true;
+
+	if (gB_IsFakeClient[client])
+		return;
+
+	if (gJ_Timer[client].Has(0, "eventqueue"))
 		return;
 
 	gJ_Timer[client].SetFromString(
@@ -393,7 +415,7 @@ public MRESReturn DHook_ActivateMultiTrigger(int pThis, DHookParam hParams)
 {
 	int client = hParams.Get(1);
 
-	if(!(0 < client <= MaxClients) || !IsClientInGame(client) || IsFakeClient(client))
+	if(!(0 < client <= MaxClients) || !gB_IsClientInGame[client] || gB_IsFakeClient[client])
 		return MRES_Ignored;
 
 	float m_flWait = GetEntPropFloat(pThis, Prop_Data, "m_flWait");
