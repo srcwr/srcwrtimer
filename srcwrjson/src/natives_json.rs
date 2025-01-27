@@ -81,13 +81,11 @@ fn Setx_Inner(
 	keylen: i32,
 ) -> Option<NonZeroU32> {
 	let object = sidx(object, key, flags, true, keylen)?;
-	let ret = if 0 != (flags & J_IS_DIFFERENT) && !object.eq(&other) {
-		None
-	} else {
-		NonZeroU32::new(1)
-	};
+	if 0 != (flags & J_IS_DIFFERENT) && object.eq(&other) {
+		return None;
+	}
 	std::mem::swap(object, other);
-	ret
+	NonZeroU32::new(1)
 }
 
 fn sidx(
@@ -664,17 +662,15 @@ fn SetIdx_Inner(
 	if v.len() < idx + 1 {
 		v.resize(idx + 1, Value::Null);
 	}
-	let ret = if 0 != (flags & J_IS_DIFFERENT) && !v[idx].eq(other) {
-		None
-	} else {
-		NonZeroU32::new(1)
-	};
+	if 0 != (flags & J_IS_DIFFERENT) && v[idx].eq(other) {
+		return None;
+	}
 	if 0 != (flags & J_MOVE) {
 		v[idx] = std::mem::take(other);
 	} else {
 		v[idx] = other.clone();
 	}
-	ret
+	NonZeroU32::new(1)
 }
 
 #[unsafe(no_mangle)]
@@ -698,7 +694,7 @@ pub extern "C" fn rust_SRCWRJSON_SetFromString(
 	key: *const c_char,
 	keylen: i32,
 ) -> Option<NonZeroU32> {
-	let mut other =
+	let mut other: Value =
 		serde_json::from_str(strxx(s, 0 != (flags & J_UNCHECKED_UTF8_VAL), end)?).ok()?;
 	Setx_Inner(&mut object.v, &mut other, flags, key, keylen)
 }
