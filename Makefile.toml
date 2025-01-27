@@ -326,17 +326,8 @@ args = ["target", "add", "i686-pc-windows-msvc"]
 
 [tasks.clone-sm]
 condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/sourcemod"] }
-script_runner = "@duckscript"
-script = '''
-fn do_everything
-	exec git clone -b ${SMSHORTVER}-dev --recursive https://github.com/alliedmodders/sourcemod "${EXTERNALDIR}/alliedmodders/sourcemod"
-	cd "${EXTERNALDIR}/alliedmodders/sourcemod/public/amtl/"
-	exec git apply --whitespace=fix ../../../../../extshared_build_helper/src/c++23-for-amtl.patch
-	cd "${EXTERNALDIR}/alliedmodders/sourcemod/sourcepawn/third_party/amtl/"
-	exec git apply --whitespace=fix ../../../../../../extshared_build_helper/src/c++23-for-amtl.patch
-end
-do_everything
-'''
+command = "git"
+args = ["clone", "-b", "${SMSHORTVER}-dev", "--recursive", "https://github.com/alliedmodders/sourcemod", "${EXTERNALDIR}/alliedmodders/sourcemod"]
 
 
 [tasks.clone-mm]
@@ -354,15 +345,8 @@ args = ["clone", "--mirror", "https://github.com/alliedmodders/hl2sdk", "${EXTER
 
 [tasks.clone-hl2sdk-css]
 condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/hl2sdk-css"] }
-script_runner = "@duckscript"
-script = '''
-fn do_everything
-	exec git clone "${EXTERNALDIR}/alliedmodders/hl2sdk-proxy-repo" "${EXTERNALDIR}/alliedmodders/hl2sdk-css" -b css
-	cd "${EXTERNALDIR}/alliedmodders/hl2sdk-css/"
-	exec git apply --whitespace=fix ../../../extshared_build_helper/src/c++17-for-hl2sdk-css.patch
-end
-do_everything
-'''
+command = "git"
+args = ["clone", "${EXTERNALDIR}/alliedmodders/hl2sdk-proxy-repo", "${EXTERNALDIR}/alliedmodders/hl2sdk-css", "-b", "css"]
 
 
 [tasks.clone-alliedmodders]
