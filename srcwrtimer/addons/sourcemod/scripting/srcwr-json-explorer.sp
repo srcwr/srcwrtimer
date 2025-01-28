@@ -80,6 +80,8 @@ Action Command_Json(int client, int argc)
 
 	LowercaseString(type);
 
+	// TODO: `SRCWR_OnEditPlayerSettings()` won't be called. Figure something out...
+
 	if (StrEqual(type, "f32") || StrEqual(type, "float"))
 	{
 		j.SetF32(StringToFloat(value), J_CREATE_PARENTS, key);

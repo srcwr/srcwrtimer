@@ -163,7 +163,6 @@ public void OnClientPutInServer(int client)
 		}",
 		-1, 0, "eventqueue"
 	);
-	SRCWR_LoadDefaultPlayerSettings(client, "eventqueue");
 }
 
 public void OnClientDisconnect_Post(int client)

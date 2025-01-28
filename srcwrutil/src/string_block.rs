@@ -5,7 +5,7 @@
 #![allow(dead_code)]
 
 pub struct StringBlock {
-	// The strings are internally stored as "<string>\x00<string>\x00".
+	// The strings are internally stored as "\x00<string>\x00<string>\x00".
 	data:             Vec<u8>,
 	// The byte-offset into data to where each string starts.
 	starting_indexes: Vec<u32>,
@@ -14,7 +14,9 @@ pub struct StringBlock {
 impl StringBlock {
 	pub fn new() -> StringBlock {
 		StringBlock {
-			data:             vec![],
+			// start the buffer with a '\0' so finding a string is easier...
+			// we can search for "\x00<string>\x00" (with `.find_delimited_str()`)
+			data:             vec![0],
 			starting_indexes: vec![],
 		}
 	}
@@ -24,7 +26,9 @@ impl StringBlock {
 	}
 	/// Clears the internal backing structures but does not free memory.
 	pub fn clear(&mut self) {
-		self.data.clear();
+		// first byte is a '\0' so truncate it to that
+		self.data.truncate(1);
+
 		self.starting_indexes.clear();
 	}
 	/// Used to prevent the `push<S: AsRef<str>>()` genericization from duplicating a bunch of code.
@@ -55,6 +59,14 @@ impl StringBlock {
 	pub fn get_str(&self, idx: usize) -> Option<&str> {
 		let p = self.get_str_ptr(idx)?;
 		Some(unsafe { std::str::from_utf8_unchecked(std::ffi::CStr::from_ptr(p).to_bytes()) })
+	}
+	/// `target` should be a string like "\x00<string>\x00"
+	pub fn find_delimited_str(&self, target: &str) -> Option<usize> {
+		let s = unsafe { std::str::from_utf8_unchecked(&self.data) };
+		let byte_idx = (s.find(target)? + 1) as u32; // +1 to skip the \x00
+		self.starting_indexes
+			.iter()
+			.position(|idx| *idx == byte_idx)
 	}
 	pub fn find_str(&self, target: &str) -> Option<usize> {
 		for (i, s) in self.iter_str().enumerate() {

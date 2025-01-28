@@ -45,6 +45,9 @@ bool MyExtension::is_plugin_compatible(IPluginContext* ctx)
 {
 	static std::string pubvarname = std::string(GetExtensionName()) + "_compat_version";
 
+	if (this->compat_version == -1)
+		return true;
+
 	cell_t* pubvar = get_pubvar(ctx->GetRuntime(), pubvarname.c_str());
 	if (!pubvar || *pubvar != this->compat_version) [[unlikely]]
 	{

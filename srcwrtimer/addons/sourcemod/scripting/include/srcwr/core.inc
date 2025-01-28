@@ -29,6 +29,7 @@
 
 #define MAPNAMEBUFSZ 129 // TODO: Engine uses char[128] for the mapname stem?
 #define CSS_MAXPLAYERS 65 // thanks tf2 for adding 100 player support for some reason
+#define MAX_NETWORKED_ENTS 2048
 
 //////////////////////////////////////////////////////////////////////////
 // macros
@@ -64,6 +65,7 @@ SRCWRJSON gJ_Timer[MAXPLAYERS+1];
 // [0] is special and for the server. If you clobber it then you'll break everything.
 SRCWRJSON gJ_Player[MAXPLAYERS+1];
 // Settings and shit for clients...
+// Do not manually SET values because the `SRCWR_OnEditPlayerSettings()` forward will not trigger for plugins.
 SRCWRJSON gJ_Settings[MAXPLAYERS+1];
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,12 +120,6 @@ stock void SRCWR_SetDefaultPlayerSettings(const char[] settings_name, const char
 {
 	if (!gJ_Settings[0].SetFromString(settings_str, 0, J_CREATE_PARENTS, "/player_defaults/%s", settings_name))
 		SetFailState("Failed to set default player settings (/%s). Check for trailing commas.\n\n%s\n", settings_name, settings_str);
-}
-
-// TODO: Remove? Have srcwr.sp auto fill settings for each client-index OnClientDisconnect_Post/OnClientConnect?
-stock void SRCWR_LoadDefaultPlayerSettings(int client, const char[] settings_name)
-{
-	gJ_Settings[client].SetZss(0, settings_name, gJ_Settings[0], "/player_defaults/%s", settings_name);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -255,6 +251,10 @@ stock float NormalizeAngleNoNaN(float angle)
 // natives - misc
 //////////////////////////////////////////////////////////////////////////
 
+// If you add custom settings from a third-party plugin then srcwr.smx will need to load the translations.
+// Otherwise shit won't display translated strings for keys.
+native void SRCWR_LoadTranslations(const char[] file);
+// If you add custom settings from a third-party plugin then you'll need to call this.
 native void SRCWR_RecreateSettingsMenu();
 
 //////////////////////////////////////////////////////////////////////////
@@ -367,8 +367,10 @@ forward void SRCWR_OnProcessMovementPost(int client);
 // When `is_being_toggled` then `value` is empty!!!! Vice versa!!!!
 // When `result == Plugin_Continue` and `type == J_Bool`
 // TODO: Documentation...
-forward Action SRCWR_OnEditPlayerSettings(int client, const char[] key, bool is_being_toggled, const char[] value, J_Type type);
+// Editing the `value` string buffer does not do anything.
+forward Action SRCWR_OnEditPlayerSettings(int client, const char[] key, bool is_being_toggled, char[] value, J_Type type);
 
+// Client is guaranteed to be ingame and authorized by the time this forward is called.
 forward void SRCWR_OnSettingsLoaded(int client);
 
 // TODO:
@@ -393,6 +395,6 @@ public SharedPlugin __pl_srcwr_core = {
 #if !defined REQUIRE_PLUGIN
 public void __pl_srcwr_core_SetNTVOptional()
 {
-
+	// TODO:
 }
 #endif

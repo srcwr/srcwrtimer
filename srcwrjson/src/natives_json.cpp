@@ -496,11 +496,11 @@ static cell_t N_SRCWRJSON_SetZss(IPluginContext* ctx, const cell_t* params)
 	GET_HANDLE(params[1], object, g_JSONType);
 	int flags = params[2];
 	char* key;
-	(void)ctx->LocalToString(params[3], &key);
+	(void)ctx->LocalToStringNULL(params[3], &key);
 	void* other;
 	GET_HANDLE(params[4], other, g_JSONType);
 	char* key2;
-	(void)ctx->LocalToString(params[5], &key2);
+	(void)ctx->LocalToStringNULL(params[5], &key2);
 	MAYBE_FORMAT(5, key2);
 	return rust_SRCWRJSON_SetZss(object, flags, key, other, key2, fmtlen);
 }

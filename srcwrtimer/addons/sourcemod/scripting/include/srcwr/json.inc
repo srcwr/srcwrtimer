@@ -218,7 +218,8 @@ methodmap SRCWRJSON < Handle {
 	public native int ReplaceCellIdx(int newcell, int flags, int idx);
 
 	// Copy things from other things....
-	public native bool SetZss(int flags=0, const char[] key, SRCWRJSON other, const char[] key2, any ...);
+	//   gJ_Settings[client].SetZss(0, settings_name, gJ_Settings[0], "/player_defaults/%s", settings_name);
+	public native bool SetZss(int flags=0, const char[] key=NULL_STRING, SRCWRJSON other, const char[] key2=NULL_STRING, any ...);
 #if 0
 	public native bool SetZsi(const char[] key, SRCWRJSON other, int key2, int flags = 0);
 	public native bool SetZis(int key, SRCWRJSON other, const char[] key2, int flags = 0);
