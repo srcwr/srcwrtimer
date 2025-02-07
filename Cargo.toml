@@ -1,33 +1,35 @@
-[workspace]
+# https://doc.rust-lang.org/cargo/reference/workspaces.html
 
-resolver = "2" # shrug
+[workspace]
+resolver = "2"
 
 members = [
-	"closestpos",
-	#"closestpos-rs",
-	"extshared",
-	"extshared_build_helper",
+	"closestpos*",
+	"extshared*",
 	"smbz2",
-	#"srcwrf64",
-	"srcwrhttp",
-	"srcwrjson",
-	#"srcwrreplayman",
-	"srcwrsample",
-	#"srcwrsyncer",
-	"srcwrutil",
+	"srcwr*",
 ]
-# Don't build these by default... (because they're just crates for extensions)
 exclude = [
-	"extshared",
-	"extshared_build_helper",
+	# The SourceMod codez and folder structure...
+	"srcwrtimer",
+
+	# Crates that are not finished (or they're broken) so ignore them...
+	"closestpos-rs", # broken
+	"srcwrf64", # lol nothing implemented
+	"srcwrreplayman", # very wip lol
+	"srcwrsyncer", # not using right now
 ]
 
 [workspace.package]
 version = "1.0.0"
-edition = "2021"
+edition = "2024"
 # TODO: Setup homepage url to go to each extension's folder / README?
 homepage = "https://github.com/srcwr/srcwrtimer"
 repository = "https://github.com/srcwr/srcwrtimer"
+
+[workspace.dependencies]
+extshared_build_helper = { path = "extshared_build_helper" }
+extshared = { path = "extshared" }
 
 [profile.release]
 lto = true
@@ -36,6 +38,4 @@ incremental = false
 [patch.crates-io]
 #git2-curl = { path = "../git2-rs/git2-curl" }
 #git2 = { path = "../git2-rs" }
-
-#bzip2 = { path = "../bzip2-rs" }
 

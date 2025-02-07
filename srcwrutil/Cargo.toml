@@ -12,10 +12,10 @@ repository.workspace = true
 crate-type = ["cdylib"]
 
 [build-dependencies]
-extshared_build_helper = { path = "../extshared_build_helper" }
+extshared_build_helper.workspace = true
 
 [dependencies]
-extshared = { path = "../extshared" }
+extshared.workspace = true
 hex = "0.4"
 libc = "0.2"
 sha1 = "0.10"

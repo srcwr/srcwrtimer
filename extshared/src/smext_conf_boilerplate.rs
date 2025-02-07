@@ -10,15 +10,15 @@ macro_rules! smext_conf_boilerplate_extension_info {
 	() => {
 		use std::io::Write;
 
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_name() -> *const u8 {
 			concat!(env!("CARGO_PKG_NAME"), "\0").as_ptr()
 		}
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_description() -> *const u8 {
 			concat!(env!("CARGO_PKG_DESCRIPTION"), "\0").as_ptr()
 		}
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_version() -> *const u8 {
 			static VER: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
 				let dirty = if env!("VERGEN_GIT_DIRTY") == "true" {
@@ -37,11 +37,11 @@ macro_rules! smext_conf_boilerplate_extension_info {
 			//concat!(env!("CARGO_PKG_VERSION"), "\0").as_ptr()
 			VER.as_ptr()
 		}
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_author() -> *const u8 {
 			concat!(env!("CARGO_PKG_AUTHORS"), "\0").as_ptr()
 		}
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_url() -> *const u8 {
 			concat!(
 				env!("CARGO_PKG_HOMEPAGE"),
@@ -51,16 +51,16 @@ macro_rules! smext_conf_boilerplate_extension_info {
 			)
 			.as_ptr()
 		}
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_logtag() -> *const u8 {
 			concat!(env!("CARGO_PKG_NAME"), "\0").as_ptr()
 		}
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_license() -> *const u8 {
 			concat!(env!("CARGO_PKG_LICENSE"), "\0").as_ptr()
 		}
 
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		#[allow(clippy::not_unsafe_ptr_arg_deref)]
 		pub extern "C" fn rust_sdk_on_load_wrapper(
 			error: *mut u8,
@@ -85,18 +85,18 @@ macro_rules! smext_conf_boilerplate_extension_info {
 macro_rules! smext_conf_boilerplate_load_funcs {
 	() => {
 		// perhaps an anyhow::Result<()> would be better...
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub fn rust_sdk_on_load(_late: bool) -> Result<(), Box<dyn std::error::Error>> {
 			Ok(())
 		}
 
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_sdk_on_unload() {}
 
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_sdk_on_all_loaded() {}
 
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_on_core_map_start(
 			_edict_list: *mut core::ffi::c_void,
 			_edict_count: i32,
@@ -104,7 +104,7 @@ macro_rules! smext_conf_boilerplate_load_funcs {
 		) {
 		}
 
-		#[no_mangle]
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_on_core_map_end() {}
 	};
 }

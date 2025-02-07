@@ -20,6 +20,10 @@ use vergen_gitcl::BuildBuilder;
 use vergen_gitcl::Emitter;
 use vergen_gitcl::GitclBuilder;
 
+static SRCWRTIMER_ROOT_DIR: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+	std::env::var("SRCWRTIMER_ROOT_DIR").unwrap()
+});
+
 pub fn generate_inc_defines_and_enums(outdir: &str, incfile: &str, name: &str) {
 	println!("cargo:rerun-if-changed={}", incfile);
 	let content = std::fs::read_to_string(incfile).unwrap();
@@ -53,29 +57,23 @@ pub {}\n",
 	std::fs::write(format!("{}/{}_DEFINES.rs", outdir, name), defines).unwrap();
 }
 
-pub fn use_atcprintf(build: &mut cc::Build) -> &mut cc::Build {
-	println!("cargo:rerun-if-changed=../extshared/src/sprintf.cpp");
-	build.file("../extshared/src/sprintf.cpp")
+pub fn use_atcprintf(build: &mut cc::Build) {
+	slurp_single_file(build, &format!("{}/extshared/src/sprintf.cpp", *SRCWRTIMER_ROOT_DIR));
 }
 
-pub fn use_cellarray(build: &mut cc::Build) -> &mut cc::Build {
-	println!("cargo:rerun-if-changed=../extshared/src/ICellArray.cpp");
-	build
-		.define("HANDLE_CELLARRAY", None)
-		.file("../extshared/src/ICellArray.cpp")
+pub fn use_cellarray(build: &mut cc::Build) {
+	build.define("HANDLE_CELLARRAY", None);
+	slurp_single_file(build, &format!("{}/extshared/src/ICellArray.cpp", *SRCWRTIMER_ROOT_DIR));
 }
 
-pub fn use_fileobject(build: &mut cc::Build) -> &mut cc::Build {
-	println!("cargo:rerun-if-changed=../extshared/src/IFileObject.cpp");
-	println!("cargo:rerun-if-changed=../extshared/src/IFileObject.hpp");
-	build
-		.define("HANDLE_FILEOBJECT", None)
-		.file("../extshared/src/IFileObject.cpp")
+pub fn use_fileobject(build: &mut cc::Build) {
+	build.define("HANDLE_FILEOBJECT", None);
+	slurp_single_file(build, &format!("{}/extshared/src/IFileObject.cpp", *SRCWRTIMER_ROOT_DIR));
+	slurp_single_file(build, &format!("{}/extshared/src/IFileObject.hpp", *SRCWRTIMER_ROOT_DIR));
 }
 
-pub fn use_valvefs(build: &mut cc::Build) -> &mut cc::Build {
-	println!("cargo:rerun-if-changed=../extshared/src/valvefs.cpp");
-	build.file("../extshared/src/valvefs.cpp")
+pub fn use_valvefs(build: &mut cc::Build) {
+	slurp_single_file(build, &format!("{}/extshared/src/valvefs.cpp", *SRCWRTIMER_ROOT_DIR));
 }
 
 pub fn compile_lib(build: cc::Build, name: &str) {
@@ -142,7 +140,7 @@ pub fn smext_tf2(build: &mut cc::Build) {
 // https://github.com/alliedmodders/sourcemod/blob/master/public/sample_ext/AMBuildScript
 pub fn smext_hl2sdk_for_good_games(build: &mut cc::Build, sdk_name: &str, sdk_id: usize) {
 	let sdk_path = std::env::var("HL2SDK")
-		.unwrap_or(format!("../_external/alliedmodders/hl2sdk-{}", sdk_name));
+		.unwrap_or(format!("{}/_external/alliedmodders/hl2sdk-{}", *SRCWRTIMER_ROOT_DIR, sdk_name));
 
 	let like_msvc = build.get_compiler().is_like_msvc();
 	let target_windows = std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows";
@@ -196,7 +194,7 @@ pub fn smext_hl2sdk_for_good_games(build: &mut cc::Build, sdk_name: &str, sdk_id
 // This is necessary because the CC compiler (zig cc) throws errors about using C++ standards via .std() when compiling C files.... frick....
 pub fn link_sm_detours(mainbuild: &mut cc::Build) {
 	let sm =
-		std::env::var("SOURCEMOD").unwrap_or("../_external/alliedmodders/sourcemod".to_string());
+		std::env::var("SOURCEMOD").unwrap_or(format!("{}/_external/alliedmodders/sourcemod", *SRCWRTIMER_ROOT_DIR));
 	//let target_windows = std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows";
 	let like_msvc = mainbuild.get_compiler().is_like_msvc();
 
@@ -259,16 +257,16 @@ pub fn smext_build() -> cc::Build {
 		.unwrap();
 
 	let sm =
-		std::env::var("SOURCEMOD").unwrap_or("../_external/alliedmodders/sourcemod".to_string());
-	let mm = std::env::var("METAMOD").unwrap_or("../_external/alliedmodders/mmsource".to_string());
+		std::env::var("SOURCEMOD").unwrap_or(format!("{}/_external/alliedmodders/sourcemod", *SRCWRTIMER_ROOT_DIR));
+	let mm = std::env::var("METAMOD").unwrap_or(format!("{}/_external/alliedmodders/mmsource", *SRCWRTIMER_ROOT_DIR));
 
-	println!("cargo:rerun-if-changed=../extshared/src/coreident.cpp");
-	println!("cargo:rerun-if-changed=../extshared/src/coreident.hpp");
-	println!("cargo:rerun-if-changed=../extshared/src/extension.cpp");
-	println!("cargo:rerun-if-changed=../extshared/src/extension.h");
-	println!("cargo:rerun-if-changed=../extshared/src/rust_exports.h");
-	println!("cargo:rerun-if-changed=../extshared/src/smsdk_config.h");
-	//rerun_on_dir_cc_files_changed("../extshared/src");
+	println!("cargo:rerun-if-changed={}/extshared/src/coreident.cpp", *SRCWRTIMER_ROOT_DIR);
+	println!("cargo:rerun-if-changed={}/extshared/src/coreident.hpp", *SRCWRTIMER_ROOT_DIR);
+	println!("cargo:rerun-if-changed={}/extshared/src/extension.cpp", *SRCWRTIMER_ROOT_DIR);
+	println!("cargo:rerun-if-changed={}/extshared/src/extension.h", *SRCWRTIMER_ROOT_DIR);
+	println!("cargo:rerun-if-changed={}/extshared/src/rust_exports.h", *SRCWRTIMER_ROOT_DIR);
+	println!("cargo:rerun-if-changed={}/extshared/src/smsdk_config.h", *SRCWRTIMER_ROOT_DIR);
+	//rerun_on_dir_cc_files_changed("{}/extshared/src", *SRCWRTIMER_ROOT_DIR);
 
 	let mut build = cc::Build::new();
 	let like_msvc = build.get_compiler().is_like_msvc();
@@ -284,9 +282,9 @@ pub fn smext_build() -> cc::Build {
 		.include(format!("{}/public/amtl", sm))
 		.include(format!("{}/core", mm))
 		.include(format!("{}/core/sourcehook", mm))
-		.include("../extshared/src")
-		.file("../extshared/src/coreident.cpp")
-		.file("../extshared/src/extension.cpp")
+		.include(format!("{}/extshared/src", *SRCWRTIMER_ROOT_DIR))
+		.file(format!("{}/extshared/src/coreident.cpp", *SRCWRTIMER_ROOT_DIR))
+		.file(format!("{}/extshared/src/extension.cpp", *SRCWRTIMER_ROOT_DIR))
 		.file(format!("{}/public/smsdk_ext.cpp", sm))
 		.cpp(true)
 		.static_crt(true);

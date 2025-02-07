@@ -47,8 +47,6 @@ TODO: investigate https://github.com/rust-cross/cargo-xwin for msvc builds from 
   - A better JSON extension for plugins to use. The `natives_json.rs` code is a mess lol. Minimally tested.
 - srcwrreplayman
   - An incomplete/placeholder extension to provide more efficient and performant replay storage and access. Expect something similar to [bhoptimer_helper_minimal](https://github.com/srcwr/bhoptimer_helper_minimal).
-- srcwrsample
-  - A sample/test extension that I use for random things. If you want an extension to copy & paste to base a new extension off of then you could try this, srcwrutil, or smbz2.
 - srcwrsql
   - Was going to be a SQL extension that runs queries parallel to each other. SourceMod's SQL extension runs each query one-after-another, with a sleep after each query, so it's not very performant. TODO one day...
 - srcwrsyncer

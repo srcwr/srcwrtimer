@@ -77,7 +77,8 @@ dependencies = [
 
 [env]
 HOSTOSPLAIN = { source = "${OS}", default_value = "linux", mapping = {"Windows_NT" = "windows"} }
-EXTERNALDIR="${CARGO_MAKE_WORKING_DIRECTORY}/_external"
+SRCWRTIMER_ROOT_DIR="${CARGO_MAKE_WORKING_DIRECTORY}"
+EXTERNALDIR="${SRCWRTIMER_ROOT_DIR}/_external"
 PACKAGEDIR="${CARGO_MAKE_WORKING_DIRECTORY}/_package"
 
 # Problem with master (as of 2024-09-30):

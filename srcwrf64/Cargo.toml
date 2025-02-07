@@ -12,8 +12,8 @@ repository.workspace = true
 crate-type = ["cdylib"]
 
 [build-dependencies]
-extshared_build_helper = { path = "../extshared_build_helper" }
+extshared_build_helper.workspace = true
 
 [dependencies]
-extshared = { path = "../extshared" }
+extshared.workspace = true
 ryu = "1.0"
