@@ -820,7 +820,7 @@ pub extern "C" fn rust_SRCWRJSON_SetZss(
 	let other = sidx(&mut other.v, key2, flags, false, key2len)?;
 	let object = sidx(&mut object.v, key, flags, true, 0)?;
 	*object = other.clone();
-	const { Some(unsafe { NonZeroI32::new_unchecked(1) }) }
+	const { Some(NonZeroI32::new(1).unwrap()) }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -846,7 +846,7 @@ fn Struct_inner(
 				let s = strxx(buf as *const i8, false, 0)?;
 				*v = s.into();
 				unsafe {
-					buf = buf.add((n + 3) / 4);
+					buf = buf.add(n.div_ceil(4));
 				}
 			} else {
 				let mut mem_to_json = |v: &mut Value| {
@@ -884,7 +884,7 @@ fn Struct_inner(
 			let s = v.as_str()?;
 			write_to_sp_buf(s.as_bytes(), None, buf as *mut u8, 0, n, 0)?;
 			unsafe {
-				buf = buf.add((n + 3) / 4);
+				buf = buf.add(n.div_ceil(4));
 			}
 			continue;
 		}
@@ -1058,14 +1058,14 @@ pub extern "C" fn rust_SRCWRJSON_GetBool(
 ) -> Option<NonZeroU32> {
 	sidx(&mut object.v, key, flags, false, keylen)?
 		.as_bool()?
-		.then_some(const { unsafe { NonZeroU32::new_unchecked(1) } })
+		.then_some(const { NonZeroU32::new(1).unwrap() })
 }
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_SRCWRJSON_GetBoolIdx(object: &mut SRCWRJSON, flags: i32, idx: usize) -> Option<NonZeroU32> {
 	GetIdx_Inner(&mut object.v, idx, flags)?
 		.as_bool()?
-		.then_some(const { unsafe { NonZeroU32::new_unchecked(1) } })
+		.then_some(const { NonZeroU32::new(1).unwrap() })
 }
 
 #[unsafe(no_mangle)]
@@ -1226,7 +1226,7 @@ pub extern "C" fn rust_SRCWRJSON_IsNull(
 ) -> Option<NonZeroU32> {
 	sidx(&mut object.v, key, flags, false, keylen)?
 		.as_null()
-		.map(|_| const { unsafe { NonZeroU32::new_unchecked(1) } })
+		.map(|_| const { NonZeroU32::new(1).unwrap() })
 }
 
 #[unsafe(no_mangle)]
@@ -1236,7 +1236,7 @@ pub extern "C" fn rust_SRCWRJSON_IsNullIdx(object: &mut SRCWRJSON, _flags: i32, 
 		.as_array()?
 		.get(idx)?
 		.as_null()
-		.map(|_| const { unsafe { NonZeroU32::new_unchecked(1) } })
+		.map(|_| const { NonZeroU32::new(1).unwrap() })
 }
 
 #[unsafe(no_mangle)]

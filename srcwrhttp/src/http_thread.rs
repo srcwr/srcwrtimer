@@ -315,7 +315,7 @@ async fn handle_req(client: reqwest::Client, mut req: SRCWRHTTPReq) -> SRCWRHTTP
 		Ok(resp) => {
 			if let Some(download_path_real) = &req.cbinfo.download_path_real {
 				// i'm probably cloning this fucking cbinfo string a shit ton... fuck it...
-				return match download_handler(resp, &download_path_real).await {
+				return match download_handler(resp, download_path_real).await {
 					Ok(mut shr) => {
 						shr.cbinfo = req.cbinfo;
 						shr

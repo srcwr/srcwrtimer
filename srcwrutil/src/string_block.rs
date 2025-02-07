@@ -119,7 +119,7 @@ impl<'a> Iterator for StringBlockStrIter<'a> {
 	}
 }
 
-impl<'a> Iterator for StringBlockPtrIter<'a> {
+impl Iterator for StringBlockPtrIter<'_> {
 	type Item = *const i8;
 	fn next(&mut self) -> Option<Self::Item> {
 		let idx = self.indexes_iter.next()?;
