@@ -45,7 +45,7 @@ lazy_static! {
 
 static mut THREAD: Option<std::thread::JoinHandle<()>> = None;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub fn rust_sdk_on_load(late: bool) -> Result<(), Box<dyn std::error::Error>> {
 	unsafe {
 		//git2_curl::register(curl::easy::Easy::new());
@@ -77,7 +77,7 @@ pub fn rust_sdk_on_load(late: bool) -> Result<(), Box<dyn std::error::Error>> {
 	Ok(())
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_sdk_on_unload() {
 	unsafe {
 		extshared::cpp_remove_game_frame_hook(game_frame_syncer);
@@ -103,10 +103,10 @@ pub extern "C" fn rust_sdk_on_unload() {
 	}
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_sdk_on_unload() {}
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_on_core_map_start(
 	_edict_list: *mut c_void,
 	_edict_count: i32,
@@ -114,7 +114,7 @@ pub extern "C" fn rust_on_core_map_start(
 ) {
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_on_core_map_end() {}
 
 extern "C" fn game_frame_syncer(_simulating: bool) {
@@ -155,7 +155,7 @@ fn syncer_thread() {
 	}
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_SRCWR_Syncer_action(
 	thing: *const c_char,
 	path: *const c_char,

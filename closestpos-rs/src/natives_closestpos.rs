@@ -15,17 +15,17 @@ pub struct ClosestPos {
 	startidx: u32,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_handle_destroy_ClosestPos(object: *mut ClosestPos) {
 	let object = unsafe { Box::from_raw(object) };
 	drop(object);
 }
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_handle_size_ClosestPos(object: &ClosestPos, size: &mut u32) -> bool {
 	false
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_ClosestPos_Create(
 	points: *const [f32; 3],
 	count: usize,
@@ -39,7 +39,7 @@ pub extern "C" fn rust_ClosestPos_Create(
 	Some(unsafe { NonNull::new_unchecked(Box::into_raw(boxed)) })
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_ClosestPos_Find(object: &ClosestPos, point: &[f32; 3]) -> u32 {
 	object.tree.nearest_one::<SquaredEuclidean>(point).item + object.startidx
 }

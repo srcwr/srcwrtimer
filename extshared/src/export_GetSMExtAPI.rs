@@ -16,7 +16,7 @@ unsafe extern "C" {
 /// On Linux, I make extshared_build_helper/src/lib.rs define `GetSMExtAPI` to `GetSMExtAPIxxx`
 /// so I don't have to modify smsdk_ext.cpp...
 #[cfg(target_os = "linux")]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn GetSMExtAPI() -> *const c_void {
 	GetSMExtAPIxxx()
 }
