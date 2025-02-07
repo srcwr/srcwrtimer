@@ -73,8 +73,7 @@ Helper crates (which aren't used):
 - [bindgen](https://crates.io/crates/bindgen)
   - Generate Rust bindings to C/C++ libraries...
 - [cbindgen](https://crates.io/crates/cbindgen)
-  - Generate C bindings to Rust libraries...
-    As of right now (2024-09-30) this seems to have trouble with the `#[unsafe(no_mangle)]` that nightly Rust wants me to use...
+  - Generate C/C++ bindings to Rust libraries... TODO
 
 ### Why does this use C++ at all?
 Interfacing with SourceMod through Rust can be tedious. You *can* do it in pure Rust thanks to the [sm-ext-rs](https://github.com/srcwr/sm-ext-rs) (srcwr fork) crate that [asherkin](https://github.com/asherkin) made, but lacking hl2sdk support makes it impractical for many things.

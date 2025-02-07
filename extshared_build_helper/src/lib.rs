@@ -353,5 +353,19 @@ pub fn smext_build() -> cc::Build {
 	// slurps the extension's src dir (not the src dir build_template.rs is in)
 	slurp_folder(&mut build, "src");
 
+	/*
+	println!("cargo:rerun-if-changed=../extshared_build_helper/cbindgen.toml");
+	cbindgen::generate_with_config(
+		".",
+		cbindgen::Config::from_file("../extshared_build_helper/cbindgen.toml")
+			.expect("couldn't find ../extshared_build_helper/cbindgen.toml"),
+	)
+	.expect("cbindgen failed to generate headers")
+	.write_to_file(format!(
+		"src/rust_exports_{}.h",
+		std::env::var("CARGO_PKG_NAME").unwrap()
+	));
+	*/
+
 	build
 }
