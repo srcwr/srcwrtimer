@@ -4,6 +4,8 @@ hard_tabs = true
 tab_spaces = 4
 newline_style = "Unix"
 
+max_width = 125
+
 imports_layout = "Vertical"
 imports_granularity = "Item"
 group_imports = "StdExternalCrate"

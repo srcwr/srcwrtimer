@@ -64,9 +64,7 @@ impl StringBlock {
 	pub fn find_delimited_str(&self, target: &str) -> Option<usize> {
 		let s = unsafe { std::str::from_utf8_unchecked(&self.data) };
 		let byte_idx = (s.find(target)? + 1) as u32; // +1 to skip the \x00
-		self.starting_indexes
-			.iter()
-			.position(|idx| *idx == byte_idx)
+		self.starting_indexes.iter().position(|idx| *idx == byte_idx)
 	}
 	pub fn find_str(&self, target: &str) -> Option<usize> {
 		for (i, s) in self.iter_str().enumerate() {

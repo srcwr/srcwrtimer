@@ -52,19 +52,14 @@ unsafe extern "C" {
 	pub fn cpp_report_error(ctx: NonNull<c_void>, err: *const u8);
 
 	pub fn cpp_local_to_phys_addr(ctx: NonNull<c_void>, addr: i32) -> *mut u8;
-	pub fn cpp_string_to_local_utf8(
-		ctx: NonNull<c_void>,
-		addr: i32,
-		maxbytes: usize,
-		s: *const u8,
-	) -> usize;
+	pub fn cpp_string_to_local_utf8(ctx: NonNull<c_void>, addr: i32, maxbytes: usize, s: *const u8) -> usize;
 }
 
 // I don't want to allocate a String/CString to print an error...
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn report_error(ctx: NonNull<c_void>, err: &dyn std::error::Error) {
 	const BUFSIZE: usize = 1024; // 1024 comes from the inner buffer used by ReportErrorVA
-							  // Note to self: Trying to use unitialized memory for this is a hassle.
+	// Note to self: Trying to use unitialized memory for this is a hassle.
 	let mut buf = [0u8; BUFSIZE];
 	let _ = write!(&mut buf[..BUFSIZE - 1], "{}", err); // -1 to leave at least the last byte as '\0'
 	unsafe { cpp_report_error(ctx, buf.as_ptr()) }

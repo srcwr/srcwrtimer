@@ -88,17 +88,14 @@ pub extern "C" fn rust_SRCWRWebsocket_SRCWRWebsocket() -> u32 {
 		LAST_STREAMID
 	};
 	let _ = unsafe {
-		WSSTREAMS
-			.as_mut()
-			.unwrap()
-			.insert(streamid, SRCWRWebsocket {
-				streamid,
-				handle: 0,
-				inner: WsInner::Request(Default::default()),
-				user_value: 0,
-				connection_forward: None,
-				message_forward: None,
-			})
+		WSSTREAMS.as_mut().unwrap().insert(streamid, SRCWRWebsocket {
+			streamid,
+			handle: 0,
+			inner: WsInner::Request(Default::default()),
+			user_value: 0,
+			connection_forward: None,
+			message_forward: None,
+		})
 	};
 	streamid
 }
@@ -110,17 +107,12 @@ pub extern "C" fn rust_SRCWRWebsocket_set_handle(streamid: u32, handle: u32) {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRWebsocket_header(
-	streamid: u32,
-	key: *const c_char,
-	value: *const c_char,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRWebsocket_header(streamid: u32, key: *const c_char, value: *const c_char) -> Option<NonZeroU32> {
 	let object = unsafe { WSSTREAMS.as_mut().unwrap().get_mut(&streamid).unwrap() };
 	if let WsInner::Request(req) = &mut object.inner {
 		let key = strxx(key, false, 0)?;
 		let value = strxx(value, false, 0)?;
-		req.headers_mut()
-			.insert(key, http::HeaderValue::from_str(value).ok()?)?;
+		req.headers_mut().insert(key, http::HeaderValue::from_str(value).ok()?)?;
 		unsafe { Some(NonZeroU32::new_unchecked(1)) }
 	} else {
 		None
@@ -135,10 +127,7 @@ pub extern "C" fn rust_SRCWRWebsocket_write_json(streamid: u32, v: &mut serde_js
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRWebsocket_write_str(
-	streamid: u32,
-	s: *const c_char,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRWebsocket_write_str(streamid: u32, s: *const c_char) -> Option<NonZeroU32> {
 	let s = strxx(s, false, 0)?;
 	rust_SRCWRWebsocket_write_str_inner(streamid, s.into())
 }
@@ -195,10 +184,7 @@ pub extern "C" fn rust_handle_destroy_SRCWRWebsocketMsg(object: *mut SRCWRWebsoc
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_handle_size_SRCWRWebsocketMsg(
-	object: &mut SRCWRWebsocketMsg,
-	size: &mut u32,
-) -> bool {
+pub extern "C" fn rust_handle_size_SRCWRWebsocketMsg(object: &mut SRCWRWebsocketMsg, size: &mut u32) -> bool {
 	*size = (object.text.len() + size_of::<SRCWRWebsocketMsg>()) as u32;
 	true
 }
@@ -216,62 +202,59 @@ async fn ws_thread(
 ) -> anyhow::Result<(), anyhow::Error> {
 	let (mut ws_stream, _) = tokio_tungstenite::connect_async(req).await?;
 	unsafe {
-		TO_SP
-			.as_ref()
-			.unwrap()
-			.send(ForSpForward::WsMsg(SRCWRWebsocketMsg {
-				streamid,
-				state: WsState::Open,
-				text: "".into(),
-			}))?;
+		TO_SP.as_ref().unwrap().send(ForSpForward::WsMsg(SRCWRWebsocketMsg {
+			streamid,
+			state: WsState::Open,
+			text: "".into(),
+		}))?;
 	}
 	loop {
 		tokio::select! {
-		  x = from_sp.recv() => {
-			let x = x.ok_or(anyhow!("Failed to receive message from sourcepawn"))?;
-			// println!("from_sp: {:?}", x);
-			if x.state == WsState::Closed {
-			  let _ = ws_stream.close(Some(tungstenite::protocol::CloseFrame {
-				code: tungstenite::protocol::frame::coding::CloseCode::Normal,
-				reason: "".into(),
-			  })).await;
-			  return Ok(());
-			}
-			ws_stream.send(tungstenite::Message::Text(x.text.clone())).await?;
-		  }
-		  msg = ws_stream.next() => {
-			let msg = msg.ok_or(anyhow!("Failed to read next WS message"))??;
-			// println!("ws_stream: {:?}", msg);
-			match msg {
-			  tungstenite::Message::Ping(v) => {
-				ws_stream.send(tungstenite::Message::Pong(v)).await?;
-			  },
-			  tungstenite::Message::Pong(_) => {
-				// whatever
-			  },
-			  tungstenite::Message::Close(cf) => {
-				if let Some(cf) = cf {
-				  return Err(anyhow!("Code {} - {}", cf.code, cf.reason));
-				} else {
-				  return Err(anyhow!("Unknown"));
+			x = from_sp.recv() => {
+				let x = x.ok_or(anyhow!("Failed to receive message from sourcepawn"))?;
+				// println!("from_sp: {:?}", x);
+				if x.state == WsState::Closed {
+					let _ = ws_stream.close(Some(tungstenite::protocol::CloseFrame {
+						code: tungstenite::protocol::frame::coding::CloseCode::Normal,
+						reason: "".into(),
+					})).await;
+					return Ok(());
 				}
-			  },
-			  _ => {
-				// Binary / Text
-				if let Ok(text) = msg.into_text() {
-				  // println!("Sending text to SP: '{}'", text);
-				  let _ = unsafe {
-					TO_SP.as_ref().unwrap().send(ForSpForward::WsMsg(
-					  SRCWRWebsocketMsg {
-						streamid,
-						state: WsState::Msg,
-						text,
-					}))
-				  };
-				}
-			  }
+				ws_stream.send(tungstenite::Message::Text(x.text.clone())).await?;
 			}
-		  }
+			msg = ws_stream.next() => {
+				let msg = msg.ok_or(anyhow!("Failed to read next WS message"))??;
+				// println!("ws_stream: {:?}", msg);
+				match msg {
+					tungstenite::Message::Ping(v) => {
+						ws_stream.send(tungstenite::Message::Pong(v)).await?;
+					},
+					tungstenite::Message::Pong(_) => {
+						// whatever
+					},
+					tungstenite::Message::Close(cf) => {
+						if let Some(cf) = cf {
+							return Err(anyhow!("Code {} - {}", cf.code, cf.reason));
+						} else {
+							return Err(anyhow!("Unknown"));
+						}
+					},
+					_ => {
+						// Binary / Text
+						if let Ok(text) = msg.into_text() {
+							// println!("Sending text to SP: '{}'", text);
+							let _ = unsafe {
+								TO_SP.as_ref().unwrap().send(ForSpForward::WsMsg(
+									SRCWRWebsocketMsg {
+										streamid,
+										state: WsState::Msg,
+										text,
+									}))
+							};
+						}
+					}
+				}
+			}
 		}
 	}
 }
@@ -299,7 +282,7 @@ async fn handle_req(client: reqwest::Client, mut req: SRCWRHTTPReq) -> SRCWRHTTP
 					cbinfo: req.cbinfo,
 					e: Some(e.to_string()),
 					..Default::default()
-				}
+				};
 			},
 		};
 
@@ -315,7 +298,7 @@ async fn handle_req(client: reqwest::Client, mut req: SRCWRHTTPReq) -> SRCWRHTTP
 						cbinfo: req.cbinfo,
 						e: Some(e.to_string()),
 						..Default::default()
-					}
+					};
 				},
 			};
 			builder.body(v)
@@ -370,15 +353,8 @@ async fn handle_req(client: reqwest::Client, mut req: SRCWRHTTPReq) -> SRCWRHTTP
 	}
 }
 
-async fn download_handler(
-	resp: reqwest::Response,
-	download_path: &str,
-) -> anyhow::Result<SRCWRHTTPResp> {
-	anyhow::ensure!(
-		resp.status().is_success(),
-		"Non-success status: {}",
-		resp.status()
-	);
+async fn download_handler(resp: reqwest::Response, download_path: &str) -> anyhow::Result<SRCWRHTTPResp> {
+	anyhow::ensure!(resp.status().is_success(), "Non-success status: {}", resp.status());
 
 	let f = tokio::fs::File::create(download_path).await?;
 	let mut bufwriter = BufWriter::new(f);
@@ -409,10 +385,7 @@ async fn download_handler(
 	})
 }
 
-async fn async_receiver(
-	default_client: reqwest::Client,
-	mut recv: UnboundedReceiver<ToAsyncThread>,
-) {
+async fn async_receiver(default_client: reqwest::Client, mut recv: UnboundedReceiver<ToAsyncThread>) {
 	let mut tasks = vec![];
 	while let Some(thing) = recv.recv().await {
 		match thing {
@@ -434,16 +407,12 @@ async fn async_receiver(
 						let _ = unsafe {
 							let mut close_reason_buf = BytesMut::new();
 							write!(&mut close_reason_buf, "{}", close_reason).unwrap();
-							let close_reason =
-								Utf8Bytes::try_from(close_reason_buf.freeze()).unwrap();
-							TO_SP
-								.as_ref()
-								.unwrap()
-								.send(ForSpForward::WsMsg(SRCWRWebsocketMsg {
-									streamid,
-									state: WsState::Closed,
-									text: close_reason,
-								}))
+							let close_reason = Utf8Bytes::try_from(close_reason_buf.freeze()).unwrap();
+							TO_SP.as_ref().unwrap().send(ForSpForward::WsMsg(SRCWRWebsocketMsg {
+								streamid,
+								state: WsState::Closed,
+								text: close_reason,
+							}))
 						};
 						// println!("Leaving ws_thread?");
 					}
@@ -491,16 +460,14 @@ pub fn http_thread_load() -> Result<(), Box<dyn std::error::Error>> {
 
 	let (to_async, async_recv) = mpsc::unbounded_channel();
 
-	let thread = std::thread::Builder::new()
-		.name("SRCWRHTTP Spawner".into())
-		.spawn(move || {
-			rt.block_on(async move {
-				async_receiver(default_client, async_recv).await;
-			});
-			//println!("our block on is over...");
-			drop(rt); /* this kills the thread pool */
-			//println!("rt dropped");
-		})?;
+	let thread = std::thread::Builder::new().name("SRCWRHTTP Spawner".into()).spawn(move || {
+		rt.block_on(async move {
+			async_receiver(default_client, async_recv).await;
+		});
+		//println!("our block on is over...");
+		drop(rt); /* this kills the thread pool */
+		//println!("rt dropped");
+	})?;
 
 	let (to_sp, from_async) = crossbeam::channel::unbounded();
 
@@ -573,10 +540,7 @@ fn do_forward(mut resp: SRCWRHTTPResp) {
 		None
 	};
 
-	let download_path_ptr = download_path_sp
-		.as_ref()
-		.map(|s| s.as_ptr())
-		.unwrap_or(core::ptr::null());
+	let download_path_ptr = download_path_sp.as_ref().map(|s| s.as_ptr()).unwrap_or(core::ptr::null());
 
 	unsafe extern "C" {
 		#[allow(improper_ctypes)]
@@ -590,13 +554,7 @@ fn do_forward(mut resp: SRCWRHTTPResp) {
 	}
 
 	unsafe {
-		cpp_forward_http_resp(
-			fw,
-			user_value,
-			e,
-			Box::into_raw(Box::new(resp)),
-			download_path_ptr,
-		);
+		cpp_forward_http_resp(fw, user_value, e, Box::into_raw(Box::new(resp)), download_path_ptr);
 	}
 
 	// unsafe {

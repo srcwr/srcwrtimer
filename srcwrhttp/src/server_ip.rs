@@ -34,11 +34,7 @@ pub fn commandline_bindip() -> Option<IpAddr> {
 	for a in std::env::args() {
 		if next_is_ip {
 			let ip = Ipv4Addr::from_str(&a).ok()?;
-			return if ip.is_global() {
-				Some(ip.into())
-			} else {
-				None
-			};
+			return if ip.is_global() { Some(ip.into()) } else { None };
 		}
 		next_is_ip = a == "-ip" || a == "+ip";
 	}

@@ -103,13 +103,7 @@ pub struct SRCWRWebsocketMsg {
 #[derive(Debug)]
 pub enum ToAsyncThread {
 	Req(SRCWRHTTPReq),
-	Ws(
-		(
-			Request<()>,
-			u32,
-			tokio::sync::mpsc::UnboundedReceiver<SRCWRWebsocketMsg>,
-		),
-	),
+	Ws((Request<()>, u32, tokio::sync::mpsc::UnboundedReceiver<SRCWRWebsocketMsg>)),
 }
 
 #[unsafe(no_mangle)]
@@ -127,12 +121,7 @@ pub extern "C" fn rust_sdk_on_unload() {
 pub extern "C" fn rust_sdk_on_all_loaded() {}
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_on_core_map_start(
-	_edict_list: *mut core::ffi::c_void,
-	_edict_count: i32,
-	_client_max: i32,
-) {
-}
+pub extern "C" fn rust_on_core_map_start(_edict_list: *mut core::ffi::c_void, _edict_count: i32, _client_max: i32) {}
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_on_core_map_end() {}

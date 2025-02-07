@@ -51,10 +51,7 @@ pub extern "C" fn rust_handle_size_SmolStringList(object: u32, size: &mut u32) -
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRUTIL_GetSHA1_File(
-	fileobject: &mut IFileObject,
-	buffer: *mut u8,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRUTIL_GetSHA1_File(fileobject: &mut IFileObject, buffer: *mut u8) -> Option<NonZeroU32> {
 	let mut hasher = Sha1::new();
 	if let Ok(bytes) = std::io::copy(fileobject, &mut hasher) {
 		let result = hasher.finalize();
@@ -67,10 +64,7 @@ pub extern "C" fn rust_SRCWRUTIL_GetSHA1_File(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRUTIL_GetSHA1_FilePath(
-	filename: *const c_char,
-	buffer: *mut u8,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRUTIL_GetSHA1_FilePath(filename: *const c_char, buffer: *mut u8) -> Option<NonZeroU32> {
 	let filename = extshared::strxx(filename, false, 0)?;
 	let mut file = std::fs::File::open(filename).ok()?;
 	let mut hasher = Sha1::new();

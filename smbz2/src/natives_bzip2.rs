@@ -104,11 +104,7 @@ pub extern "C" fn rust_BZ2_XompressFile(
 		outfilefull: outfilefull.to_owned(),
 		forward,
 		data,
-		compressionLevel: if compressionLevel < 0 {
-			None
-		} else {
-			Some(compressionLevel)
-		},
+		compressionLevel: if compressionLevel < 0 { None } else { Some(compressionLevel) },
 		error: BZ_Error::BZ_OK,
 	});
 

@@ -62,11 +62,7 @@ macro_rules! smext_conf_boilerplate_extension_info {
 
 		#[unsafe(no_mangle)]
 		#[allow(clippy::not_unsafe_ptr_arg_deref)]
-		pub extern "C" fn rust_sdk_on_load_wrapper(
-			error: *mut u8,
-			maxlength: usize,
-			late: bool,
-		) -> bool {
+		pub extern "C" fn rust_sdk_on_load_wrapper(error: *mut u8, maxlength: usize, late: bool) -> bool {
 			extshared::export_GetSMExtAPI::doit();
 			match rust_sdk_on_load(late) {
 				Ok(_) => true,
@@ -97,12 +93,7 @@ macro_rules! smext_conf_boilerplate_load_funcs {
 		pub extern "C" fn rust_sdk_on_all_loaded() {}
 
 		#[unsafe(no_mangle)]
-		pub extern "C" fn rust_on_core_map_start(
-			_edict_list: *mut core::ffi::c_void,
-			_edict_count: i32,
-			_client_max: i32,
-		) {
-		}
+		pub extern "C" fn rust_on_core_map_start(_edict_list: *mut core::ffi::c_void, _edict_count: i32, _client_max: i32) {}
 
 		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_on_core_map_end() {}

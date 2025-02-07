@@ -108,9 +108,7 @@ pub extern "C" fn rust_handle_size_SRCWRHTTPResp(object: &SRCWRHTTPResp, size: &
 ///////////////////////////////////////////////////////////////////////////////////////
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRHTTPReq_SRCWRHTTPReq(
-	url: *const c_char,
-) -> Option<NonNull<SRCWRHTTPReq>> {
+pub extern "C" fn rust_SRCWRHTTPReq_SRCWRHTTPReq(url: *const c_char) -> Option<NonNull<SRCWRHTTPReq>> {
 	let url = reqwest::Url::parse(strxx(url, false, 0)?).ok()?;
 
 	let boxed = Box::new(SRCWRHTTPReq {
@@ -177,10 +175,7 @@ pub extern "C" fn rust_SRCWRHTTPReq_Download(
 ///////////////////////////////////////////////////////////////////////////////////////
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRHTTPReq_method(
-	object: &mut SRCWRHTTPReq,
-	method: *const c_char,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRHTTPReq_method(object: &mut SRCWRHTTPReq, method: *const c_char) -> Option<NonZeroU32> {
 	object.method = reqwest::Method::from_str(strxx(method, true, 0)?).ok()?;
 	NonZeroU32::new(1)
 }
@@ -217,11 +212,7 @@ pub extern "C" fn rust_SRCWRHTTPReq_query_param(
 ///////////////////////////////////////////////////////////////////////////////////////
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRHTTPReq_body_set(
-	object: &mut SRCWRHTTPReq,
-	end: i32,
-	content: *const i8,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRHTTPReq_body_set(object: &mut SRCWRHTTPReq, end: i32, content: *const i8) -> Option<NonZeroU32> {
 	object.body.get_or_insert_default().clear();
 	rust_SRCWRHTTPReq_body_add(object, end, content)
 }
@@ -236,29 +227,15 @@ pub extern "C" fn rust_SRCWRHTTPReq_body_add_file_on_send(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRHTTPReq_body_add(
-	object: &mut SRCWRHTTPReq,
-	end: i32,
-	content: *const i8,
-) -> Option<NonZeroU32> {
-	let len = if end < 1 {
-		unsafe { strlen(content) }
-	} else {
-		end as usize
-	};
+pub extern "C" fn rust_SRCWRHTTPReq_body_add(object: &mut SRCWRHTTPReq, end: i32, content: *const i8) -> Option<NonZeroU32> {
+	let len = if end < 1 { unsafe { strlen(content) } } else { end as usize };
 	let content = unsafe { std::slice::from_raw_parts(content as *const u8, len) };
-	object
-		.body
-		.get_or_insert_default()
-		.extend_from_slice(content);
+	object.body.get_or_insert_default().extend_from_slice(content);
 	NonZeroU32::new(1)
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRHTTPReq_body_add_file(
-	object: &mut SRCWRHTTPReq,
-	path: *const c_char,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRHTTPReq_body_add_file(object: &mut SRCWRHTTPReq, path: *const c_char) -> Option<NonZeroU32> {
 	let path = strxx(path, false, 0)?;
 	let mut f = std::fs::File::open(path).ok()?;
 	let _count = f.read_to_end(object.body.get_or_insert_default()).ok()?;
@@ -271,19 +248,14 @@ pub extern "C" fn rust_SRCWRHTTPReq_body_add_file_handle(
 	file: &mut IFileObject,
 ) -> Option<NonZeroU32> {
 	let mut reader = BufReader::with_capacity(4096, file);
-	let _count = reader
-		.read_to_end(object.body.get_or_insert_default())
-		.ok()?;
+	let _count = reader.read_to_end(object.body.get_or_insert_default()).ok()?;
 	NonZeroU32::new(1)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRHTTPReq_local_address(
-	object: &mut SRCWRHTTPReq,
-	addr: *const c_char,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRHTTPReq_local_address(object: &mut SRCWRHTTPReq, addr: *const c_char) -> Option<NonZeroU32> {
 	object.local_address = Some(IpAddr::from_str(strxx(addr, true, 0)?).ok()?);
 	NonZeroU32::new(1)
 }
@@ -342,10 +314,7 @@ pub extern "C" fn rust_SRCWRHTTPReq_connect_timeout_set(object: &mut SRCWRHTTPRe
 
 fn resp_resolve_text(object: &mut SRCWRHTTPResp) {
 	if object.text.is_none() {
-		object.text = Some(reqwest_text_with_charset::yeah(
-			&object.bytes,
-			&object.headers,
-		));
+		object.text = Some(reqwest_text_with_charset::yeah(&object.bytes, &object.headers));
 	}
 }
 
@@ -409,10 +378,7 @@ pub extern "C" fn rust_SRCWRHTTPResp_byte_length_get(object: &mut SRCWRHTTPResp)
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRHTTPResp_json_get_inner(
-	object: &mut SRCWRHTTPResp,
-	outlen: &mut usize,
-) -> *const u8 {
+pub extern "C" fn rust_SRCWRHTTPResp_json_get_inner(object: &mut SRCWRHTTPResp, outlen: &mut usize) -> *const u8 {
 	resp_resolve_text(object);
 	if let Some(t) = object.text.as_ref() {
 		*outlen = t.len();
@@ -441,10 +407,7 @@ pub extern "C" fn rust_SRCWRWebsocketMsg_length_get(object: &mut SRCWRWebsocketM
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRWebsocketMsg_json_get_inner(
-	object: &mut SRCWRWebsocketMsg,
-	outlen: &mut usize,
-) -> *const u8 {
+pub extern "C" fn rust_SRCWRWebsocketMsg_json_get_inner(object: &mut SRCWRWebsocketMsg, outlen: &mut usize) -> *const u8 {
 	*outlen = object.text.len();
 	object.text.as_ptr()
 }

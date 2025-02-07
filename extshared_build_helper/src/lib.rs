@@ -20,9 +20,8 @@ use vergen_gitcl::BuildBuilder;
 use vergen_gitcl::Emitter;
 use vergen_gitcl::GitclBuilder;
 
-static SRCWRTIMER_ROOT_DIR: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
-	std::env::var("SRCWRTIMER_ROOT_DIR").unwrap()
-});
+static SRCWRTIMER_ROOT_DIR: std::sync::LazyLock<String> =
+	std::sync::LazyLock::new(|| std::env::var("SRCWRTIMER_ROOT_DIR").unwrap());
 
 pub fn generate_inc_defines_and_enums(outdir: &str, incfile: &str, name: &str) {
 	println!("cargo:rerun-if-changed={}", incfile);
@@ -31,10 +30,7 @@ pub fn generate_inc_defines_and_enums(outdir: &str, incfile: &str, name: &str) {
 
 	let re = regex::Regex::new(r"[^/]#define (\w+)\s+\((.+)\)").unwrap();
 	for cap in re.captures_iter(&content) {
-		defines.push_str(&format!(
-			"#[allow(dead_code)] const {}: i32 = {};\n",
-			&cap[1], &cap[2]
-		));
+		defines.push_str(&format!("#[allow(dead_code)] const {}: i32 = {};\n", &cap[1], &cap[2]));
 	}
 
 	let re = regex::RegexBuilder::new(r"(enum \w+\s*\{.*?\})")
@@ -84,10 +80,7 @@ pub fn compile_lib(build: cc::Build, name: &str) {
 
 	// dumb
 	if !like_msvc && target_windows {
-		let _ = std::fs::copy(
-			format!("{}/lib{}.a", outdir, name),
-			format!("{}/{}.lib", outdir, name),
-		);
+		let _ = std::fs::copy(format!("{}/lib{}.a", outdir, name), format!("{}/{}.lib", outdir, name));
 	}
 }
 
@@ -101,11 +94,7 @@ pub fn slurp_single_file(build: &mut cc::Build, name: &str) {
 pub fn slurp_folder(build: &mut cc::Build, dirrrr: &str) {
 	for path in std::fs::read_dir(dirrrr).unwrap() {
 		let name = path.unwrap().file_name().into_string().unwrap();
-		if name.ends_with(".cpp")
-			|| name.ends_with(".hpp")
-			|| name.ends_with(".h")
-			|| name.ends_with(".c")
-		{
+		if name.ends_with(".cpp") || name.ends_with(".hpp") || name.ends_with(".h") || name.ends_with(".c") {
 			let full = format!("{}/{}", dirrrr, name);
 			println!("cargo:rerun-if-changed={}", full);
 			if name.ends_with(".cpp") || name.ends_with(".c") {
@@ -118,11 +107,7 @@ pub fn slurp_folder(build: &mut cc::Build, dirrrr: &str) {
 pub fn rerun_on_dir_cc_files_changed(dirrrr: &str) {
 	for path in std::fs::read_dir(dirrrr).unwrap() {
 		let name = path.unwrap().file_name().into_string().unwrap();
-		if name.ends_with(".cpp")
-			|| name.ends_with(".hpp")
-			|| name.ends_with(".h")
-			|| name.ends_with(".c")
-		{
+		if name.ends_with(".cpp") || name.ends_with(".hpp") || name.ends_with(".h") || name.ends_with(".c") {
 			println!("cargo:rerun-if-changed={}/{}", dirrrr, name);
 		}
 	}
@@ -139,8 +124,10 @@ pub fn smext_tf2(build: &mut cc::Build) {
 // make an smext_hl2sdk_for_bad_games if you're not using the CSS or TF2 hl2sdk...
 // https://github.com/alliedmodders/sourcemod/blob/master/public/sample_ext/AMBuildScript
 pub fn smext_hl2sdk_for_good_games(build: &mut cc::Build, sdk_name: &str, sdk_id: usize) {
-	let sdk_path = std::env::var("HL2SDK")
-		.unwrap_or(format!("{}/_external/alliedmodders/hl2sdk-{}", *SRCWRTIMER_ROOT_DIR, sdk_name));
+	let sdk_path = std::env::var("HL2SDK").unwrap_or(format!(
+		"{}/_external/alliedmodders/hl2sdk-{}",
+		*SRCWRTIMER_ROOT_DIR, sdk_name
+	));
 
 	let like_msvc = build.get_compiler().is_like_msvc();
 	let target_windows = std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows";
@@ -163,9 +150,7 @@ pub fn smext_hl2sdk_for_good_games(build: &mut cc::Build, sdk_name: &str, sdk_id
 		.define("SOURCE_ENGINE", sdk_id.to_string().as_str());
 
 	if !target_windows {
-		build
-			.define("NO_HOOK_MALLOC", None)
-			.define("NO_MALLOC_OVERRIDE", None);
+		build.define("NO_HOOK_MALLOC", None).define("NO_MALLOC_OVERRIDE", None);
 	}
 
 	if like_msvc {
@@ -193,8 +178,7 @@ pub fn smext_hl2sdk_for_good_games(build: &mut cc::Build, sdk_name: &str, sdk_id
 
 // This is necessary because the CC compiler (zig cc) throws errors about using C++ standards via .std() when compiling C files.... frick....
 pub fn link_sm_detours(mainbuild: &mut cc::Build) {
-	let sm =
-		std::env::var("SOURCEMOD").unwrap_or(format!("{}/_external/alliedmodders/sourcemod", *SRCWRTIMER_ROOT_DIR));
+	let sm = std::env::var("SOURCEMOD").unwrap_or(format!("{}/_external/alliedmodders/sourcemod", *SRCWRTIMER_ROOT_DIR));
 	//let target_windows = std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows";
 	let like_msvc = mainbuild.get_compiler().is_like_msvc();
 
@@ -235,11 +219,7 @@ pub fn link_sm_detours(mainbuild: &mut cc::Build) {
 }
 
 pub fn smext_build() -> cc::Build {
-	let buildinfo = BuildBuilder::default()
-		.use_local(false)
-		.build_date(true)
-		.build()
-		.unwrap();
+	let buildinfo = BuildBuilder::default().use_local(false).build_date(true).build().unwrap();
 	let gitinfo = GitclBuilder::default()
 		.branch(true)
 		.dirty(true)
@@ -256,8 +236,7 @@ pub fn smext_build() -> cc::Build {
 		.emit()
 		.unwrap();
 
-	let sm =
-		std::env::var("SOURCEMOD").unwrap_or(format!("{}/_external/alliedmodders/sourcemod", *SRCWRTIMER_ROOT_DIR));
+	let sm = std::env::var("SOURCEMOD").unwrap_or(format!("{}/_external/alliedmodders/sourcemod", *SRCWRTIMER_ROOT_DIR));
 	let mm = std::env::var("METAMOD").unwrap_or(format!("{}/_external/alliedmodders/mmsource", *SRCWRTIMER_ROOT_DIR));
 
 	println!("cargo:rerun-if-changed={}/extshared/src/coreident.cpp", *SRCWRTIMER_ROOT_DIR);

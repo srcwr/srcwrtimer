@@ -6,9 +6,9 @@
 
 // TODO: Throw core::intrinsics::likely() everywhere :innocent:
 
+use core::ffi::CStr;
 use core::ffi::c_char;
 use core::ffi::c_void;
-use core::ffi::CStr;
 use core::ptr::NonNull;
 use std::fs::File;
 use std::io::BufRead;
@@ -73,13 +73,7 @@ fn boxval(V: Value) -> NonNull<SRCWRJSON> {
 	unsafe { NonNull::new_unchecked(Box::into_raw(boxed)) }
 }
 
-fn Setx_Inner(
-	object: &mut Value,
-	other: &mut Value,
-	flags: i32,
-	key: *const c_char,
-	keylen: i32,
-) -> Option<NonZeroU32> {
+fn Setx_Inner(object: &mut Value, other: &mut Value, flags: i32, key: *const c_char, keylen: i32) -> Option<NonZeroU32> {
 	let object = sidx(object, key, flags, true, keylen)?;
 	if 0 != (flags & J_IS_DIFFERENT) && object.eq(&other) {
 		return None;
@@ -88,13 +82,7 @@ fn Setx_Inner(
 	NonZeroU32::new(1)
 }
 
-fn sidx(
-	object: &mut Value,
-	s: *const c_char,
-	flags: i32,
-	create_if_not_exists: bool,
-	end: i32,
-) -> Option<&mut Value> {
+fn sidx(object: &mut Value, s: *const c_char, flags: i32, create_if_not_exists: bool, end: i32) -> Option<&mut Value> {
 	if s.is_null() {
 		return Some(object);
 	}
@@ -111,8 +99,7 @@ fn sidx(
 
 	let create_parents = 0 != (flags & J_CREATE_PARENTS);
 
-	let mut parents: SmallVec<[&str; 8]> =
-		key.split('/').skip(1).filter(|&x| !x.is_empty()).collect();
+	let mut parents: SmallVec<[&str; 8]> = key.split('/').skip(1).filter(|&x| !x.is_empty()).collect();
 	let base = parents.pop()?;
 
 	let mut scratch = SmallVec::<[u8; 128]>::new();
@@ -150,13 +137,7 @@ fn sidx(
 					Some(&mut a[idx])
 				} else {
 					*current_value = json!({});
-					Some(
-						current_value
-							.as_object_mut()
-							.unwrap()
-							.entry(k)
-							.or_insert(Value::Null),
-					)
+					Some(current_value.as_object_mut().unwrap().entry(k).or_insert(Value::Null))
 				}
 			},
 			_ => None,
@@ -350,11 +331,7 @@ pub fn rust_SRCWRJSON_ToFile_Inner<T: Write>(
 	let _ = write!(
 		&mut writer,
 		"{}",
-		if 0 != (flags & J_FILE_NULL_TERMINATE) {
-			"\0"
-		} else {
-			"\n"
-		}
+		if 0 != (flags & J_FILE_NULL_TERMINATE) { "\0" } else { "\n" }
 	);
 	Some(())
 }
@@ -441,10 +418,7 @@ pub extern "C" fn rust_SRCWRJSON_ToString(
 ///////////////////////////////////////////////////////////////////////////////////////
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_FromFile(
-	filename: *const c_char,
-	flags: i32,
-) -> Option<NonNull<SRCWRJSON>> {
+pub extern "C" fn rust_SRCWRJSON_FromFile(filename: *const c_char, flags: i32) -> Option<NonNull<SRCWRJSON>> {
 	let filename = unsafe { CStr::from_ptr(filename) }.to_str().ok()?;
 
 	if 0 != (flags & J_JSON_LINES) {
@@ -463,11 +437,7 @@ pub extern "C" fn rust_SRCWRJSON_FromFile(
 	match reader.read_until(0, &mut buf) {
 		Err(_) => None,
 		Ok(len) => {
-			let rangemax = if len > 0 && buf[buf.len() - 1] == 0 {
-				len - 1
-			} else {
-				len
-			};
+			let rangemax = if len > 0 && buf[buf.len() - 1] == 0 { len - 1 } else { len };
 			Some(boxval(serde_json::from_slice(&buf[..rangemax]).ok()?))
 		},
 	}
@@ -475,10 +445,7 @@ pub extern "C" fn rust_SRCWRJSON_FromFile(
 
 // TODO: Duplication... look into `dyn Write` stuff...
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_FromFileHandle(
-	file: &mut IFileObject,
-	flags: i32,
-) -> Option<NonNull<SRCWRJSON>> {
+pub extern "C" fn rust_SRCWRJSON_FromFileHandle(file: &mut IFileObject, flags: i32) -> Option<NonNull<SRCWRJSON>> {
 	if 0 == (flags & J_FILE_STOP_AT_ZERO) {
 		let mut content = String::new();
 		let _ = file.read_to_string(&mut content).ok()?;
@@ -492,22 +459,14 @@ pub extern "C" fn rust_SRCWRJSON_FromFileHandle(
 	let mut buf = Vec::new();
 
 	let len = reader.read_until(0, &mut buf).ok()?;
-	let rangemax = if len > 0 && buf[buf.len() - 1] == 0 {
-		len - 1
-	} else {
-		len
-	};
+	let rangemax = if len > 0 && buf[buf.len() - 1] == 0 { len - 1 } else { len };
 	Some(boxval(serde_json::from_slice(&buf[..rangemax]).ok()?))
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_FromString(
-	flags: i32,
-	s: *const c_char,
-	slen: i32,
-) -> Option<NonNull<SRCWRJSON>> {
+pub extern "C" fn rust_SRCWRJSON_FromString(flags: i32, s: *const c_char, slen: i32) -> Option<NonNull<SRCWRJSON>> {
 	Some(boxval(
 		serde_json::from_str(strxx(s, 0 != (flags & J_UNCHECKED_UTF8_VAL), slen)?).ok()?,
 	))
@@ -516,12 +475,7 @@ pub extern "C" fn rust_SRCWRJSON_FromString(
 ///////////////////////////////////////////////////////////////////////////////////////
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_Has(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	key: *const c_char,
-	keylen: i32,
-) -> bool {
+pub extern "C" fn rust_SRCWRJSON_Has(object: &mut SRCWRJSON, flags: i32, key: *const c_char, keylen: i32) -> bool {
 	// match &object.v {
 	//   Value::Object(m) => sidx(&mut object.v, key, flags, false).is_some(),
 	//   _ => false,
@@ -530,12 +484,7 @@ pub extern "C" fn rust_SRCWRJSON_Has(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_GetType(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	key: *const c_char,
-	keylen: i32,
-) -> J_Type {
+pub extern "C" fn rust_SRCWRJSON_GetType(object: &mut SRCWRJSON, flags: i32, key: *const c_char, keylen: i32) -> J_Type {
 	let Some(object) = sidx(&mut object.v, key, flags, false, keylen) else {
 		return J_Type::J_Unknown;
 	};
@@ -550,12 +499,7 @@ pub extern "C" fn rust_SRCWRJSON_GetType(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_IsArray(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	key: *const c_char,
-	keylen: i32,
-) -> bool {
+pub extern "C" fn rust_SRCWRJSON_IsArray(object: &mut SRCWRJSON, flags: i32, key: *const c_char, keylen: i32) -> bool {
 	let Some(object) = sidx(&mut object.v, key, flags, false, keylen) else {
 		return false;
 	};
@@ -565,12 +509,7 @@ pub extern "C" fn rust_SRCWRJSON_IsArray(
 ///////////////////////////////////////////////////////////////////////////////////////
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_len(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	key: *const c_char,
-	keylen: i32,
-) -> usize {
+pub extern "C" fn rust_SRCWRJSON_len(object: &mut SRCWRJSON, flags: i32, key: *const c_char, keylen: i32) -> usize {
 	let Some(object) = sidx(&mut object.v, key, flags, false, keylen) else {
 		return -1i32 as usize;
 	};
@@ -592,25 +531,13 @@ pub extern "C" fn rust_SRCWRJSON_Get(
 	keylen: i32,
 ) -> Option<NonNull<SRCWRJSON>> {
 	let x = sidx(&mut object.v, key, flags, false, keylen)?;
-	Some(boxval(if 0 != (flags & J_MOVE) {
-		std::mem::take(x)
-	} else {
-		x.clone()
-	}))
+	Some(boxval(if 0 != (flags & J_MOVE) { std::mem::take(x) } else { x.clone() }))
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_GetIdx(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	idx: usize,
-) -> Option<NonNull<SRCWRJSON>> {
+pub extern "C" fn rust_SRCWRJSON_GetIdx(object: &mut SRCWRJSON, flags: i32, idx: usize) -> Option<NonNull<SRCWRJSON>> {
 	let x = GetIdx_Inner(&mut object.v, idx, flags)?;
-	Some(boxval(if 0 != (flags & J_MOVE) {
-		std::mem::take(x)
-	} else {
-		x.clone()
-	}))
+	Some(boxval(if 0 != (flags & J_MOVE) { std::mem::take(x) } else { x.clone() }))
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -645,12 +572,7 @@ fn GetIdx_Inner(v: &mut Value, mut idx: usize, _flags: i32) -> Option<&mut Value
 	Some(v.get_mut(idx).unwrap())
 }
 
-fn SetIdx_Inner(
-	v: &mut Value,
-	mut idx: usize,
-	other: &mut Value,
-	flags: i32,
-) -> Option<NonZeroU32> {
+fn SetIdx_Inner(v: &mut Value, mut idx: usize, other: &mut Value, flags: i32) -> Option<NonZeroU32> {
 	let v = v.as_array_mut()?;
 	if (idx as i32) < 0i32 {
 		let x = -(idx as i32) as usize;
@@ -694,8 +616,7 @@ pub extern "C" fn rust_SRCWRJSON_SetFromString(
 	key: *const c_char,
 	keylen: i32,
 ) -> Option<NonZeroU32> {
-	let mut other: Value =
-		serde_json::from_str(strxx(s, 0 != (flags & J_UNCHECKED_UTF8_VAL), end)?).ok()?;
+	let mut other: Value = serde_json::from_str(strxx(s, 0 != (flags & J_UNCHECKED_UTF8_VAL), end)?).ok()?;
 	Setx_Inner(&mut object.v, &mut other, flags, key, keylen)
 }
 
@@ -708,12 +629,7 @@ pub extern "C" fn rust_SRCWRJSON_SetFromStringIdx(
 	idx: usize,
 ) -> Option<NonZeroU32> {
 	let other = strxx(s, 0 != (flags & J_UNCHECKED_UTF8_VAL), end)?;
-	SetIdx_Inner(
-		&mut object.v,
-		idx,
-		&mut serde_json::from_str(other).ok()?,
-		flags | J_MOVE,
-	)
+	SetIdx_Inner(&mut object.v, idx, &mut serde_json::from_str(other).ok()?, flags | J_MOVE)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -727,8 +643,7 @@ fn sidxremove(object: &mut SRCWRJSON, s: *const c_char, flags: i32, keylen: i32)
 		return Some(());
 	}
 
-	let mut parents: SmallVec<[&str; 8]> =
-		key.split('/').skip(1).filter(|&x| !x.is_empty()).collect();
+	let mut parents: SmallVec<[&str; 8]> = key.split('/').skip(1).filter(|&x| !x.is_empty()).collect();
 	let base = parents.pop()?;
 
 	let mut scratch = SmallVec::<[u8; 128]>::new();
@@ -786,11 +701,7 @@ pub extern "C" fn rust_SRCWRJSON_Remove(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_RemoveIdx(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	idx: usize,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRJSON_RemoveIdx(object: &mut SRCWRJSON, flags: i32, idx: usize) -> Option<NonZeroU32> {
 	let v = object.v.as_array_mut()?;
 	let idx = if (idx as i32) < 0i32 {
 		let x = -(idx as i32) as usize;
@@ -928,13 +839,7 @@ fn Struct_inner(
 		let jsonkey = thing.next()?;
 		let sptype = thing.next()?;
 		let n = thing.next();
-		let v = sidx(
-			object,
-			jsonkey.as_ptr() as *const i8,
-			0,
-			setter,
-			jsonkey.len() as i32,
-		)?;
+		let v = sidx(object, jsonkey.as_ptr() as *const i8, 0, setter, jsonkey.len() as i32)?;
 		if setter {
 			if sptype == "char" {
 				let n: usize = n?.parse().ok()?;
@@ -1079,11 +984,7 @@ pub extern "C" fn rust_SRCWRJSON_GetCell(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_GetCellIdx(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	idx: usize,
-) -> Option<NonZeroI32> {
+pub extern "C" fn rust_SRCWRJSON_GetCellIdx(object: &mut SRCWRJSON, flags: i32, idx: usize) -> Option<NonZeroI32> {
 	NonZeroI32::new(GetIdx_Inner(&mut object.v, idx, flags)?.as_i64()? as i32)
 }
 
@@ -1121,11 +1022,7 @@ pub extern "C" fn rust_SRCWRJSON_GetF32(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_GetF32Idx(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	idx: usize,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRJSON_GetF32Idx(object: &mut SRCWRJSON, flags: i32, idx: usize) -> Option<NonZeroU32> {
 	NonZeroU32::new((GetIdx_Inner(&mut object.v, idx, flags)?.as_f64()? as f32).to_bits())
 }
 
@@ -1165,11 +1062,7 @@ pub extern "C" fn rust_SRCWRJSON_GetBool(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_GetBoolIdx(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	idx: usize,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRJSON_GetBoolIdx(object: &mut SRCWRJSON, flags: i32, idx: usize) -> Option<NonZeroU32> {
 	GetIdx_Inner(&mut object.v, idx, flags)?
 		.as_bool()?
 		.then_some(const { unsafe { NonZeroU32::new_unchecked(1) } })
@@ -1222,11 +1115,7 @@ pub extern "C" fn rust_SRCWRJSON_ToggleBool(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_ToggleBoolIdx(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	idx: usize,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRJSON_ToggleBoolIdx(object: &mut SRCWRJSON, flags: i32, idx: usize) -> Option<NonZeroU32> {
 	rust_SRCWRJSON_ToggleBool_Inner(GetIdx_Inner(&mut object.v, idx, flags)?)
 }
 
@@ -1341,11 +1230,7 @@ pub extern "C" fn rust_SRCWRJSON_IsNull(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_IsNullIdx(
-	object: &mut SRCWRJSON,
-	_flags: i32,
-	idx: usize,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRJSON_IsNullIdx(object: &mut SRCWRJSON, _flags: i32, idx: usize) -> Option<NonZeroU32> {
 	object
 		.v
 		.as_array()?
@@ -1365,11 +1250,7 @@ pub extern "C" fn rust_SRCWRJSON_SetNull(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRJSON_SetNullIdx(
-	object: &mut SRCWRJSON,
-	flags: i32,
-	idx: usize,
-) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRJSON_SetNullIdx(object: &mut SRCWRJSON, flags: i32, idx: usize) -> Option<NonZeroU32> {
 	SetIdx_Inner(&mut object.v, idx, &mut Value::Null, flags)
 }
 
@@ -1392,14 +1273,7 @@ pub extern "C" fn rust_SRCWRJSON_GetString(
 	}
 
 	let s = sidx(&mut object.v, key, flags, false, keylen)?.as_str()?;
-	write_to_sp_buf(
-		s.as_bytes(),
-		Some(ctx),
-		buffer,
-		local_addr,
-		maxlength,
-		flags,
-	)
+	write_to_sp_buf(s.as_bytes(), Some(ctx), buffer, local_addr, maxlength, flags)
 }
 
 #[unsafe(no_mangle)]
@@ -1418,14 +1292,7 @@ pub extern "C" fn rust_SRCWRJSON_GetStringIdx(
 	}
 
 	let s = GetIdx_Inner(&mut object.v, idx, flags)?.as_str()?;
-	write_to_sp_buf(
-		s.as_bytes(),
-		Some(ctx),
-		buffer,
-		local_addr,
-		maxlength,
-		flags,
-	)
+	write_to_sp_buf(s.as_bytes(), Some(ctx), buffer, local_addr, maxlength, flags)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

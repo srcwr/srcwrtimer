@@ -25,10 +25,6 @@ unsafe extern "C" {
 impl ICellArray {
 	pub fn push_string(&mut self, s: &str) -> Option<usize> {
 		let idx = unsafe { ICellArray_PushString(self, s.as_ptr(), s.len()) };
-		if idx < 0 {
-			None
-		} else {
-			Some(idx as usize)
-		}
+		if idx < 0 { None } else { Some(idx as usize) }
 	}
 }
