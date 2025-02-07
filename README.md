@@ -55,6 +55,10 @@ TODO: investigate https://github.com/rust-cross/cargo-xwin for msvc builds from 
   - A bunch of miscellaneous things like SHA1 hashing and download-table hooking. Blocks `.nav` files from being created server-side, and downloaded client-side.
 
 
+### Making your own extension:
+You'll probably need to copy/look-at some code from the extensions in *this* repository but a good base to start off of is in [srcwr/srcwrtimer_sample_extension](https://github.com/srcwr/srcwrtimer_sample_extension).
+
+
 ### Plugins in srcwrtimer:
 
 

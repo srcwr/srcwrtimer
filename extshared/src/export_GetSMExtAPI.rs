@@ -18,7 +18,7 @@ unsafe extern "C" {
 #[cfg(target_os = "linux")]
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn GetSMExtAPI() -> *const c_void {
-	GetSMExtAPIxxx()
+	unsafe { GetSMExtAPIxxx() }
 }
 
 /// We have to call this so the symbol won't be optimized out...

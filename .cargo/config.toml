@@ -10,6 +10,8 @@ target = "i686-pc-windows-msvc"
 CFLAGS_i686_pc_windows_msvc = "/Zi /FS"
 CXXFLAGS_i686_pc_windows_msvc = "/Zi /FS"
 
+SRCWRTIMER_ROOT_DIR = { value = ".", relative = true }
+
 [target.i686-pc-windows-msvc]
 rustflags = [
 	# 2025... we can rely on CPUs to be using SSE2... not that it will likely change much in codegen...
