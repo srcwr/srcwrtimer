@@ -8,9 +8,5 @@
 		"**/_external": true,
 		"**/_package": true,
 		"**/target": true
-	},
-	"files.associations": {
-		"*.inc": "cpp",
-		"*.sp": "cpp"
 	}
 }
