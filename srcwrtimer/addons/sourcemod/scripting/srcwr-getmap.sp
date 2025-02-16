@@ -69,7 +69,7 @@ Action Command_GetMap(int client, int argc)
 		return Plugin_Handled;
 	}
 
-	char mapname[MAPNAMEBUFSZ];
+	char mapname[CSS_MAPNAMEBUFSZ];
 	GetCmdArgString(mapname, sizeof(mapname));
 	TrimString(mapname);
 
@@ -100,7 +100,7 @@ void TryDownload(DataPack dp)
 	dp.Reset();
 	int client = GetClientFromSerial(dp.ReadCell());
 
-	char url[256], mapname[MAPNAMEBUFSZ], path[PLATFORM_MAX_PATH];
+	char url[256], mapname[CSS_MAPNAMEBUFSZ], path[PLATFORM_MAX_PATH];
 	gCV_URL.GetString(url, sizeof(url));
 
 	dp.ReadString(mapname, sizeof(mapname));
@@ -128,7 +128,7 @@ void DownloadCallback(any data, const char[] error, const char[] filename)
 	DataPack dp = data;
 	dp.Reset();
 	int client = GetClientFromSerial(dp.ReadCell());
-	char mapname[MAPNAMEBUFSZ];
+	char mapname[CSS_MAPNAMEBUFSZ];
 	dp.ReadString(mapname, sizeof(mapname));
 	int state = dp.ReadCell();
 
@@ -183,7 +183,7 @@ void DecompressCallback(BZ_Error error, char[] infile, char[] outfile, any data)
 	DataPack dp = data;
 	dp.Reset();
 	int client = GetClientFromSerial(dp.ReadCell());
-	char mapname[MAPNAMEBUFSZ];
+	char mapname[CSS_MAPNAMEBUFSZ];
 	dp.ReadString(mapname, sizeof(mapname));
 	delete dp;
 
@@ -218,7 +218,7 @@ void CompressCallback(BZ_Error error, char[] infile, char[] outfile, any data)
 	DataPack dp = data;
 	dp.Reset();
 	int client = GetClientFromSerial(dp.ReadCell());
-	char mapname[MAPNAMEBUFSZ];
+	char mapname[CSS_MAPNAMEBUFSZ];
 	dp.ReadString(mapname, sizeof(mapname));
 	delete dp;
 

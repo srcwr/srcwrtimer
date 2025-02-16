@@ -27,7 +27,12 @@
 #endif
 #define SP_URL(%1) SRCWR_REPO_BASE_URL..."/blob/"...SRCWR_VERSION..."/srcwrtimer/addons/sourcemod/scripting/"...%1...".sp"
 
-#define MAPNAMEBUFSZ 129 // TODO: Engine uses char[128] for the mapname stem?
+// CSS's engine uses char[128] to hold "maps/<mapname>.bsp\0" when starting a server. 118 is the max-length of a mapname FOR SERVERS.
+// BUT for clients trying to join: the server sends a char[64].
+// (As a client, you can truncate a local map file name to be 63 characters long and you'd be able to join...)
+// Anyway, the longest legitimate mapname is 57 characters long...
+// THUS: char mapname[CSS_MAPNAMEBUFSZ];...
+#define CSS_MAPNAMEBUFSZ 64
 #define CSS_MAXPLAYERS 65 // thanks tf2 for adding 100 player support for some reason
 #define MAX_NETWORKED_ENTS 2048
 
