@@ -1,21 +1,21 @@
 [build]
 target-dir = "_build"
 
-# 2025... we can rely on CPUs to be using SSE2... not that it will likely change much in codegen...
-rustflags = ["-Ctarget-feature=+sse2"]
+# FUCK YOU TO PEOPLE WITH OLD CPUS
+rustflags = ["-Ctarget-cpu=x86-64-v2"]
 
-target = "i686-pc-windows-msvc"
+target = "x86_64-pc-windows-msvc"
 
 [env]
-CFLAGS_i686_pc_windows_msvc = "/Zi /FS"
-CXXFLAGS_i686_pc_windows_msvc = "/Zi /FS"
+CFLAGS_x86_64_pc_windows_msvc = "/Zi /FS"
+CXXFLAGS_x86_64_pc_windows_msvc = "/Zi /FS"
 
 SRCWRTIMER_ROOT_DIR = { value = ".", relative = true }
 
-[target.i686-pc-windows-msvc]
+[target.x86_64-pc-windows-msvc]
 rustflags = [
-	# 2025... we can rely on CPUs to be using SSE2... not that it will likely change much in codegen...
-	"-Ctarget-feature=+sse2",
+	# FUCK YOU TO PEOPLE WITH OLD CPUS
+	"-Ctarget-cpu=x86-64-v2",
 	# TODO: Do we want static crt on Windows? I can't remember if there was a reason for this...
 	"-Ctarget-feature=+crt-static",
 	# Yeah, we want frame pointers...

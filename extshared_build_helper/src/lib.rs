@@ -150,20 +150,25 @@ pub fn smext_hl2sdk_for_good_games(build: &mut cc::Build, sdk_name: &str, sdk_id
 		.define("SOURCE_ENGINE", sdk_id.to_string().as_str());
 
 	if !target_windows {
-		build.define("NO_HOOK_MALLOC", None).define("NO_MALLOC_OVERRIDE", None);
+		build
+			.define("NO_HOOK_MALLOC", None)
+			.define("NO_MALLOC_OVERRIDE", None)
+			.define("LINUX", None);
 	}
 
 	if like_msvc {
-		//build.define("", None);
+		build.define("COMPILER_MSVC", "1").define("COMPILER_MSVC64", "1");
+	} else {
+		build.define("COMPILER_GCC", "1");
 	}
 
 	let (lib_folder, links) = if target_windows {
-		(format!("{}/lib/public", sdk_path), vec![
+		(format!("{sdk_path}/lib/public/x64"), vec![
 			"tier0", "tier1", "vstdlib", "mathlib",
 		])
 	} else {
 		(
-			format!("{}/lib/linux", sdk_path),
+			format!("{sdk_path}/lib/public/linux64"),
 			// vec!["tier1_i486", "mathlib_i486"] // ??????
 			vec![],
 		)
@@ -207,12 +212,20 @@ pub fn link_sm_detours(mainbuild: &mut cc::Build) {
 
 	if like_msvc {
 		detours
+			.define("COMPILER_MSVC", "1")
+			.define("COMPILER_MSVC64", "1")
 			.flag("/std:c++latest") // /std:c++23 doesn't exist yet!! crazy! TODO: periodically check this https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version
 			.flag("/permissive-")
 			// C++ stack unwinding & extern "C" don't throw...
 			.flag("/EHsc");
 	} else {
-		detours.flag("-std=c++23");
+		detours
+			.define("COMPILER_GCC", "1")
+			.flag("-std=c++23")
+			.define("LINUX", None)
+			.flag("-Wno-unknown-pragmas")
+			.flag("-Wno-dangling-else")
+			.flag("-Wno-deprecated-volatile");
 	}
 
 	detours.compile("safetyhook_and_shit");
@@ -275,8 +288,11 @@ pub fn smext_build() -> cc::Build {
 		// println!("cargo::rustc-link-arg=/OUT:_build\\i686-pc-windows-msvc\\release\\{}.ext.dll", std::env::var("CARGO_PKG_NAME").unwrap());
 
 		build
+			.define("COMPILER_MSVC", "1")
+			.define("COMPILER_MSVC64", "1")
 			.flag("/std:c++latest") // /std:c++23 doesn't exist yet!! crazy! TODO: periodically check this https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version
 			// We also set /Zi and /FS in .cargo/config.toml with some cc-crate target-specific environment variables
+			.flag("/d2archSSE42") // sse4.2!
 			.flag("/Zi") // debug info things https://learn.microsoft.com/en-us/cpp/build/reference/z7-zi-zi-debug-information-format
 			.flag("/FS") // force synchronous pdb writes https://learn.microsoft.com/en-us/cpp/build/reference/fs-force-synchronous-pdb-writes
 			.flag("/wd4100") // disable warning C4100: unreferenced formal parameter
@@ -286,13 +302,14 @@ pub fn smext_build() -> cc::Build {
 			.flag("/Oy-");
 	} else {
 		build
-			.define("stricmp", "strcasecmp")
-			.define("_stricmp", "strcasecmp")
 			.define("HAVE_STDINT_H", None)
 			.define("GNUC", None)
-			.flag("-m32")
-			.flag("-msse")
+			.define("COMPILER_GCC", "1")
+			.flag("-mcpu=x86_64_v2")
 			.flag("-std=c++23")
+			.flag("-Wno-unknown-pragmas")
+			.flag("-Wno-dangling-else")
+			.flag("-Wno-deprecated-volatile")
 			.flag("-Wno-non-virtual-dtor")
 			.flag("-Wno-overloaded-virtual")
 			.flag("-Wno-implicit-exception-spec-mismatch")
@@ -317,12 +334,12 @@ pub fn smext_build() -> cc::Build {
 		build
 			.define("_CRT_SECURE_NO_WARNINGS", None)
 			.define("WIN32", None)
+			.define("WIN64", None)
 			.define("_WINDOWS", None);
 	} else {
 		build
-			.define("_vsnprintf", "vsnprintf")
-			.define("_snprintf", "snprintf")
 			.define("_LINUX", None)
+			.define("LINUX", None)
 			.define("GetSMExtAPI", "GetSMExtAPIxxx")
 			.define("POSIX", None);
 	}

@@ -90,9 +90,9 @@ ZIGEXT = { source = "${OS}", default_value = "tar.xz", mapping = {"Windows_NT" =
 CARGO_ZIGBUILD_ZIG_PATH = { source = "${CI}", default_value = "${EXTERNALDIR}/zig-${HOSTOSPLAIN}/zig", mapping = {"true" = "zig"} }
 HOSTZIGTOOLCHAIN = { source = "${OS}", default_value = "x86_64-linux", mapping = {"Windows_NT" = "x86_64-windows"} }
 
-MMSOURCEVER="1.11" # Not always instep with SM versions.
+MMBRANCH="master" # Not always instep with SM versions.
 SMSHORTVER="1.12" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
-SMBINVER="sourcemod-1.12.0-git7177-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
+SMBINVER="sourcemod-1.12.0-git7183-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
 SMBINEXT = { source = "${OS}", default_value = "tar.gz", mapping = {"Windows_NT" = "zip"} }
 SPCOMP = { source = "${OS}", default_value = "spcomp64", mapping = {"Windows_NT" = "spcomp"} }
 
@@ -202,19 +202,19 @@ do_everything
 [tasks.copy-extensions]
 script_runner = "@duckscript"
 script = '''
-extdir = set "${PACKAGEDIR}/srcwrtimer/addons/sourcemod/extensions"
+extdir = set "${PACKAGEDIR}/srcwrtimer/addons/sourcemod/extensions/x64"
 builddir = set "${CARGO_MAKE_WORKING_DIRECTORY}/_build"
 
 fn copy_ext
 	rm "${extdir}/${1}.ext.dll"
 	rm "${extdir}/${1}.pdb"
 	rm "${extdir}/${1}.ext.so"
-	if is_path_exists "${builddir}/i686-pc-windows-msvc/release/${1}.dll"
-		cp "${builddir}/i686-pc-windows-msvc/release/${1}.dll"       "${extdir}/${1}.ext.dll"
-		cp "${builddir}/i686-pc-windows-msvc/release/${1}.pdb"       "${extdir}/${1}.pdb"
+	if is_path_exists "${builddir}/x86_64-pc-windows-msvc/release/${1}.dll"
+		cp "${builddir}/x86_64-pc-windows-msvc/release/${1}.dll"       "${extdir}/${1}.ext.dll"
+		cp "${builddir}/x86_64-pc-windows-msvc/release/${1}.pdb"       "${extdir}/${1}.pdb"
 	end
-	if is_path_exists "${builddir}/i686-unknown-linux-gnu/release/lib${1}.so"
-		cp "${builddir}/i686-unknown-linux-gnu/release/lib${1}.so"   "${extdir}/${1}.ext.so"
+	if is_path_exists "${builddir}/x86_64-unknown-linux-gnu/release/lib${1}.so"
+		cp "${builddir}/x86_64-unknown-linux-gnu/release/lib${1}.so"   "${extdir}/${1}.ext.so"
 	end
 end
 
@@ -293,19 +293,19 @@ dependencies = [
 [tasks.linux]
 toolchain = "nightly"
 command = "cargo"
-args = ["zigbuild", "--release", "--target", "i686-unknown-linux-gnu.2.26"]
+args = ["zigbuild", "--release", "--target", "x86_64-unknown-linux-gnu.2.26"]
 
 [tasks.msvc]
 toolchain = "nightly"
 command = "cargo"
 #env = { "CARGO_LOG" = "cargo::core::compiler::fingerprint=info" }
-args = ["build", "--release", "--target", "i686-pc-windows-msvc"]
+args = ["build", "--release", "--target", "x86_64-pc-windows-msvc"]
 
 # TODO: xwin not quite worky...
 [tasks.msvc.linux]
 toolchain = "nightly"
 command = "cargo"
-args = ["xwin", "build", "--xwin-arch", "x86", "--release", "--target", "i686-pc-windows-msvc"]
+args = ["xwin", "build", "--xwin-arch", "x86_64", "--release", "--target", "x86_64-pc-windows-msvc"]
 
 ################################################################################
 ## asdf
@@ -314,12 +314,12 @@ args = ["xwin", "build", "--xwin-arch", "x86", "--release", "--target", "i686-pc
 [tasks.rustup-linux]
 toolchain = "nightly"
 command = "rustup"
-args = ["target", "add", "i686-unknown-linux-gnu"]
+args = ["target", "add", "x86_64-unknown-linux-gnu"]
 
 [tasks.rustup-msvc]
 toolchain = "nightly"
 command = "rustup"
-args = ["target", "add", "i686-pc-windows-msvc"]
+args = ["target", "add", "x86_64-pc-windows-msvc"]
 
 ################################################################################
 ## asdf
@@ -334,7 +334,7 @@ args = ["clone", "-b", "${SMSHORTVER}-dev", "--recursive", "https://github.com/a
 [tasks.clone-mm]
 condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/mmsource"] }
 command = "git"
-args = ["clone", "https://github.com/alliedmodders/metamod-source", "${EXTERNALDIR}/alliedmodders/mmsource", "-b", "${MMSOURCEVER}-dev"]
+args = ["clone", "https://github.com/alliedmodders/metamod-source", "${EXTERNALDIR}/alliedmodders/mmsource", "-b", "${MMBRANCH}"]
 
 
 # TODO: Add update-hl2sdk which does `git remote update` for the proxy repo and then `git pull` in  -css
@@ -346,8 +346,17 @@ args = ["clone", "--mirror", "https://github.com/alliedmodders/hl2sdk", "${EXTER
 
 [tasks.clone-hl2sdk-css]
 condition = { files_not_exist = ["${EXTERNALDIR}/alliedmodders/hl2sdk-css"] }
-command = "git"
-args = ["clone", "${EXTERNALDIR}/alliedmodders/hl2sdk-proxy-repo", "${EXTERNALDIR}/alliedmodders/hl2sdk-css", "-b", "css"]
+#command = "git"
+#args = ["clone", "${EXTERNALDIR}/alliedmodders/hl2sdk-proxy-repo", "${EXTERNALDIR}/alliedmodders/hl2sdk-css", "-b", "css"]
+script_runner = "@duckscript"
+script = '''
+fn do_everything
+	exec git clone "${EXTERNALDIR}/alliedmodders/hl2sdk-proxy-repo" "${EXTERNALDIR}/alliedmodders/hl2sdk-css" -b css
+	cd "${EXTERNALDIR}/alliedmodders/hl2sdk-css/"
+	exec git apply --whitespace=fix ../../../extshared_build_helper/src/c++23-for-hl2sdk-css-1.patch
+end
+do_everything
+'''
 
 
 [tasks.clone-alliedmodders]

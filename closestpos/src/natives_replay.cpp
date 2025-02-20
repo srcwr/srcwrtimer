@@ -126,7 +126,7 @@ static cell_t N_ClosestPos_ClosestPos(IPluginContext* ctx, const cell_t* params)
 			return ctx->ThrowNativeError("count must be 1 or greater (given %d)", count);
 		}
 
-		count = Zmin(count, (cell_t)size-startidx);
+		count = Zmin(count, (cell_t)(size-startidx));
 	}
 
 	std::vector<Point> *data = new std::vector<Point>(count);

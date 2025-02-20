@@ -144,7 +144,7 @@ static cell_t N_SRCWRJSON_GetHandles(IPluginContext* ctx, const cell_t* params)
 	if (auto search = HandleGroups.find(groupname); search != HandleGroups.end())
 	{
 		const auto& group = search->second;
-		memcpy(handles, group.data(), Zmin((unsigned)count, group.size()) * sizeof(Handle_t));
+		memcpy(handles, group.data(), Zmin((size_t)count, group.size()) * sizeof(Handle_t));
 		return 1;
 	}
 

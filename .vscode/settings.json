@@ -1,5 +1,5 @@
 {
-	"rust-analyzer.cargo.target": "i686-pc-windows-msvc",
+	"rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
 	"rust-analyzer.cargo.extraArgs": ["--release"],
 	"rust-analyzer.check.allTargets": false,
 	"rust-analyzer.checkOnSave.allTargets": false,

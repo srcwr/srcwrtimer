@@ -40,7 +40,7 @@ jobs:
       - name: Setup SourcePawn Compiler
         uses: rumblefrog/setup-sp@v1.2.4
         with:
-          version: '1.12.7177' ### UPDATE Makefile.toml whenever this is updated.
+          version: '1.12.7183' ### UPDATE Makefile.toml whenever this is updated.
       - name: Setup Zig
         uses: mlugg/setup-zig@v1
         with:
