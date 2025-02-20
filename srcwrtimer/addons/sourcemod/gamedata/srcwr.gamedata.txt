@@ -46,6 +46,12 @@
 		}
 		"Offsets"
 		{
+			// https://asherkin.github.io/vtable/
+			"CGameRules::IsSpawnPointValid"
+			{
+				"windows"   "76"
+				"linux"     "77"
+			}
 			// Search "#Ignore_Radio", go to reference, grab offset right above.
 			"CCSPlayer::m_bIgnoreRadio"
 			{

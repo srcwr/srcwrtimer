@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2022 rtldg <rtldg@protonmail.com>
+// Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 #include <sdktools>
@@ -35,7 +35,7 @@ bool gB_Late;
 Handle gH_Touch;
 int gI_CurrentTraceEntity;
 int gI_LastGroundEntity[CSS_MAXPLAYERS+1];
-int gI_DoorState[2048]; // 0 = empty, 1 = door-booster, anything else = ent-reference to teleporter
+int gI_DoorState[MAX_NETWORKED_ENTS]; // 0 = empty, 1 = door-booster, anything else = ent-reference to teleporter
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
@@ -115,8 +115,13 @@ public void OnClientPutInServer(int client)
 	{
 		// TODO: Look into using gJ_Player???
 		// TODO: Hammerid for lastblock? Ent reference? Both?
-		gJ_Timer[client].SetCell(-1, 0, "/mpbhops/lastblock");
-		gJ_Timer[client].SetF32(0.0, 0, "/mpbhops/punishtime");
+		gJ_Timer[client].SetFromString(
+			"{                       \
+				\"lastblock\": -1,   \
+				\"punishtime\": 0.0 \
+			}",
+			0, 0, "mpbhops"
+		);
 	}
 
 	SDKHook(client, SDKHook_GroundEntChangedPost, Hook_GroundEntChangedPost);
@@ -186,7 +191,7 @@ Action Block_Touch_Teleport(int block, int client)
 
 // TODO:
 #if 0
-	float time = (Shavit_GetTimerStatus(client) == Timer_Stopped) ? GetGameTime() : Shavit_GetClientTime(client); // TODO: handle stopped timer & style timescale settings...
+	float time = (SRCWR_GetTimerStatus(client) == Timer_Stopped) ? GetGameTime() : Shavit_GetClientTime(client); // TODO: handle stopped timer & style timescale settings...
 #else
 	float time = GetGameTime();
 #endif
