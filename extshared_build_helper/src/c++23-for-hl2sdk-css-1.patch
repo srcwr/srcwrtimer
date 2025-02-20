@@ -3,7 +3,7 @@ index d55afdc7..38c36e88 100644
 --- a/public/tier1/utlsymbol.h
 +++ b/public/tier1/utlsymbol.h
 @@ -105,7 +105,7 @@ public:
-
+ 	
  	inline bool HasElement( const char* pStr ) const
  	{
 -		return Find( pStr ) != UTL_INVAL_SYMBOL;
