@@ -92,7 +92,7 @@ HOSTZIGTOOLCHAIN = { source = "${OS}", default_value = "x86_64-linux", mapping =
 
 MMBRANCH="master" # Not always instep with SM versions.
 SMSHORTVER="1.12" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
-SMBINVER="sourcemod-1.12.0-git7183-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
+SMBINVER="sourcemod-1.12.0-git7187-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
 SMBINEXT = { source = "${OS}", default_value = "tar.gz", mapping = {"Windows_NT" = "zip"} }
 SPCOMP = { source = "${OS}", default_value = "spcomp64", mapping = {"Windows_NT" = "spcomp"} }
 
@@ -159,7 +159,15 @@ dependencies = [
 script_runner = "@duckscript"
 script = '''
 fn do_everything
-	rm -r ${PACKAGEDIR}/srcwrtimer
+	# Nuke all files in this fucking bitch without deleting folders...
+	# Doing this because it makes debugging a bit easier because VS2022 is holding a handle to my extensions directory...
+	exts = array txt dll pdb so cfg smx sp inc json
+	for ext in ${exts}
+		handle = glob_array "${PACKAGEDIR}/**/*.${ext}"
+		for path in ${handle}
+			rm ${path}
+		end
+	end
 	cp ${CARGO_MAKE_WORKING_DIRECTORY}/srcwrtimer ${PACKAGEDIR}
 	# grrr angry
 	mkdir ${PACKAGEDIR}/srcwrtimer/addons/sourcemod/plugins

@@ -23,6 +23,9 @@ struct QHandleType_Caster
 	unsigned int freeID;
 	unsigned int children;
 	TypeAccess typeSec;
+	HandleAccess hndlSec;
+	unsigned int opened;
+	std::unique_ptr<std::string> name; // don't dereference... bad idea if different representation...
 };
 // https://github.com/alliedmodders/sourcemod/blob/b14c18ee64fc822dd6b0f5baea87226d59707d5a/core/logic/HandleSys.h#L230
 struct HandleSystem_Caster
@@ -36,11 +39,15 @@ struct HandleSystem_Caster
 bool ResolveCoreIdent(char* error, size_t maxlength)
 {
 #if 1 || defined(_WIN32)
+	HandleType_t type_with_coreident;
+	if (!g_pHandleSys->FindHandleType("CellArray", &type_with_coreident))
+	{
+		snprintf(error, maxlength, "Failed to get dummy handle type");
+		return false;
+	}
+
 	HandleSystem_Caster *blah = (HandleSystem_Caster *)g_pHandleSys;
-	// g_ArrayListType doesn't work here???
-	// I really have no idea what's going on. This is terrible....
-	unsigned index = 512;
-	g_pCoreIdent = blah->m_Types[index].typeSec.ident;
+	g_pCoreIdent = blah->m_Types[type_with_coreident].typeSec.ident;
 #else
 	Dl_info info;
 	// memutils is from sourcemod.logic.so so we can grab the module from it.
