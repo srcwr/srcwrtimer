@@ -143,6 +143,7 @@ pub fn smext_hl2sdk_for_good_games(build: &mut cc::Build, sdk_name: &str, sdk_id
 		.include(format!("{}/public/toolframework", sdk_path))
 		.include(format!("{}/game/shared", sdk_path))
 		.include(format!("{}/common", sdk_path))
+		.define("GAME_DLL", None)
 		.define(
 			format!("SE_{}", sdk_name.to_ascii_uppercase()).as_str(),
 			sdk_id.to_string().as_str(),
@@ -266,6 +267,7 @@ pub fn smext_build() -> cc::Build {
 
 	build
 		.define("SM_LOGIC", None) // needed for getting coreident.hpp & alliedmodders/sourcemod/core/logic/HandleSys.h .... although i don't use it...
+		.define("GAME_DLL", None)
 		.include(format!("{}/core", sm))
 		.include(format!("{}/public", sm))
 		.include(format!("{}/public/extensions", sm))
