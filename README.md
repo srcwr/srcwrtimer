@@ -97,7 +97,7 @@ That's where all the SourceMod files are dumped after being built. Extensions, p
   - Probably requires `Makefile.toml` changes & new tasks for TF2 / CS:S specific builds and stuff and yada yada yada. (the build.rs would then check the features to determine which sdk to use...)
 - Investigate the C++ helper crates more...
 - Cleanup srcwrhttp & srcwrjson... Document natives & provide more examples in `json.inc` & `http.inc`...
-- Do something about including `target = "i686-pc-windows-msvc"` in `.cargo/config.toml` since that might be a bit annoying for Linux developers.
+- Do something about including `target = "x86_64-pc-windows-msvc"` in `.cargo/config.toml` since that might be a bit annoying for Linux developers.
 - Make it possible to use different paths for the things in `_external`.
 - Don't forget about [`Allow natives to return structs and arrays.`](https://github.com/alliedmodders/sourcepawn/pull/988)
 
