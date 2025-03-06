@@ -11,7 +11,8 @@
 #define SMEXT_CONF_URL			"https://github.com/srcwr/srcwrtimer (THIS ISN'T USED)"
 #define SMEXT_CONF_LOGTAG		"SRCWR (THIS ISN'T USED)"
 #define SMEXT_CONF_LICENSE		"GPL-3.0-or-later (THIS ISN'T USED)"
-#define SMEXT_CONF_DATESTRING	__DATE__
+//#define SMEXT_CONF_DATESTRING	__DATE__
+#define SMEXT_CONF_DATESTRING	"UNKNOWN (THIS ISN'T USED)"
 
 #ifndef SOURCE_ENGINE
 #define META_NO_HL2SDK

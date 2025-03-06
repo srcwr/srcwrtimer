@@ -14,6 +14,7 @@ void rust_sdk_on_all_loaded();
 void rust_on_core_map_start(void* edict_list, int edict_count, int client_max);
 void rust_on_core_map_end();
 const char* rust_conf_name();
+const char* rust_conf_datestring();
 const char* rust_conf_description();
 const char* rust_conf_version();
 const char* rust_conf_author();

@@ -42,6 +42,10 @@ macro_rules! smext_conf_boilerplate_extension_info {
 			concat!(env!("CARGO_PKG_AUTHORS"), "\0").as_ptr()
 		}
 		#[unsafe(no_mangle)]
+		pub extern "C" fn rust_conf_datestring() -> *const u8 {
+			concat!(env!("VERGEN_BUILD_DATE"), "\0").as_ptr()
+		}
+		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_url() -> *const u8 {
 			concat!(
 				env!("CARGO_PKG_HOMEPAGE"),

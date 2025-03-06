@@ -179,7 +179,7 @@ const char *MyExtension::GetExtensionAuthor()
 
 const char *MyExtension::GetExtensionDateString()
 {
-	return SMEXT_CONF_DATESTRING;
+	return rust_conf_datestring();
 }
 
 const char *MyExtension::GetExtensionDescription()

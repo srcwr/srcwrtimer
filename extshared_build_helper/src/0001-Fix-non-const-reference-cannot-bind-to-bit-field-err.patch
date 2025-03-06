@@ -1,0 +1,51 @@
+From f3db078d94224f4bebd9c7a8615a277e55b92efe Mon Sep 17 00:00:00 2001
+From: rtldg <rtldg@protonmail.com>
+Date: Thu, 6 Mar 2025 08:14:39 +0000
+Subject: [PATCH] Fix 'non-const reference cannot bind to bit-field' error with
+ newer clang versions
+
+This specifically shows up when trying to use zig 0.14.0 (llvm 19.1.7) to cross-compile to Linux.
+
+  In file included from H:\code\srcwr\srcwrtimer/_external/alliedmodders/sourcemod/public/CDetour/detours.cpp:1:
+  In file included from H:\code\srcwr\srcwrtimer/_external/alliedmodders/sourcemod/public/CDetour/detours.h:36:
+  In file included from H:\code\srcwr\srcwrtimer/_external/alliedmodders/sourcemod/public/smsdk_ext.h:100:
+  In file included from H:\code\srcwr\srcwrtimer/_external/alliedmodders/mmsource/core/ISmmPlugin.h:39:
+  In file included from H:\code\srcwr\srcwrtimer/_external/alliedmodders/mmsource/core/ISmmAPI.h:47:
+  In file included from H:\code\srcwr\srcwrtimer/_external/alliedmodders/hl2sdk-css/public/eiface.h:16:
+  In file included from H:\code\srcwr\srcwrtimer/_external/alliedmodders/hl2sdk-css/public/tier1/convar.h:21:
+  In file included from H:\code\srcwr\srcwrtimer/_external/alliedmodders/hl2sdk-css/public/tier1/utlvector.h:25:
+  H:\code\srcwr\srcwrtimer/_external/alliedmodders/hl2sdk-css/public/tier1/utlblockmemory.h:141:10: error: non-const reference cannot bind to bit-field 'm_nIndexShift'
+    141 |         V_swap( m_nIndexShift, mem.m_nIndexShift );
+        |                 ^~~~~~~~~~~~~
+  H:\code\srcwr\srcwrtimer/_external/alliedmodders/hl2sdk-css/public/tier1/utlblockmemory.h:111:6: note: bit-field is declared here
+    111 |         int m_nIndexShift : 5;
+        |             ^
+  H:\code\srcwr\srcwrtimer/_external/alliedmodders/hl2sdk-css/public/mathlib/mathlib.h:717:29: note: passing argument to parameter 'x' here
+    717 | FORCEINLINE void V_swap( T& x, T& y )
+        |                             ^                           ^
+---
+ public/tier1/utlblockmemory.h | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/public/tier1/utlblockmemory.h b/public/tier1/utlblockmemory.h
+index 8d86c59e..4782e235 100644
+--- a/public/tier1/utlblockmemory.h
++++ b/public/tier1/utlblockmemory.h
+@@ -137,8 +137,12 @@ void CUtlBlockMemory<T,I>::Swap( CUtlBlockMemory< T, I > &mem )
+ {
+ 	V_swap( m_pMemory, mem.m_pMemory );
+ 	V_swap( m_nBlocks, mem.m_nBlocks );
+-	V_swap( m_nIndexMask, mem.m_nIndexMask );
+-	V_swap( m_nIndexShift, mem.m_nIndexShift );
++	int tmp = m_nIndexMask;
++	m_nIndexMask = mem.m_nIndexMask;
++	mem.m_nIndexMask = tmp;
++	tmp = m_nIndexShift;
++	m_nIndexShift = mem.m_nIndexShift;
++	mem.m_nIndexShift = tmp;
+ }
+ 
+ 
+-- 
+2.47.1.windows.1
+

@@ -81,8 +81,9 @@ SRCWRTIMER_ROOT_DIR="${CARGO_MAKE_WORKING_DIRECTORY}"
 EXTERNALDIR="${SRCWRTIMER_ROOT_DIR}/_external"
 PACKAGEDIR="${CARGO_MAKE_WORKING_DIRECTORY}/_package"
 
-# Problem with master (as of 2024-09-30):
+# Problem with 0.14.0 (as of 2024-09-30 (and still as of 2025-03-06)):
 #  `zig: error: version '.2.26' in target triple 'x86-unknown-linux-gnu.2.26' is invalid`
+#  (also when using '.2.29')
 #  Probably related: https://github.com/ziglang/zig/issues/16630
 #  Back to "0.13.0" for now...
 ZIGDLVER="0.13.0" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
@@ -364,6 +365,7 @@ fn do_everything
 	exec git clone "${EXTERNALDIR}/alliedmodders/hl2sdk-proxy-repo" "${EXTERNALDIR}/alliedmodders/hl2sdk-css" -b css
 	cd "${EXTERNALDIR}/alliedmodders/hl2sdk-css/"
 	exec git apply --whitespace=fix ../../../extshared_build_helper/src/c++23-for-hl2sdk-css-1.patch
+	exec git apply --whitespace=fix ../../../extshared_build_helper/src/0001-Fix-non-const-reference-cannot-bind-to-bit-field-err.patch
 end
 do_everything
 '''
