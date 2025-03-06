@@ -92,7 +92,7 @@ HOSTZIGTOOLCHAIN = { source = "${OS}", default_value = "x86_64-linux", mapping =
 
 MMBRANCH="master" # Not always instep with SM versions.
 SMSHORTVER="1.12" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
-SMBINVER="sourcemod-1.12.0-git7187-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
+SMBINVER="sourcemod-1.12.0-git7193-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
 SMBINEXT = { source = "${OS}", default_value = "tar.gz", mapping = {"Windows_NT" = "zip"} }
 SPCOMP = { source = "${OS}", default_value = "spcomp64", mapping = {"Windows_NT" = "spcomp"} }
 
@@ -301,7 +301,9 @@ dependencies = [
 [tasks.linux]
 toolchain = "nightly"
 command = "cargo"
-args = ["zigbuild", "--release", "--target", "x86_64-unknown-linux-gnu.2.26"]
+# CS:S binaries are now at 2.29 according to this:
+#   objdump -T bin/*.so | grep GLIBC | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu
+args = ["zigbuild", "--release", "--target", "x86_64-unknown-linux-gnu.2.29"]
 
 [tasks.msvc]
 toolchain = "nightly"
