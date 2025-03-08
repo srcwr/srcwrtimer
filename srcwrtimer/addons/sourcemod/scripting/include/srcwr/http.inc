@@ -164,7 +164,9 @@ typeset SRCWRWebsocketMsgCallback {
 methodmap SRCWRWebsocket < Handle {
 	public native SRCWRWebsocket();
 	public native bool header(const char[] key, const char[] value, any ...);
+#if defined _srcwr_json_included
 	public native bool write_json(SRCWRJSON json);
+#endif
 	public native bool write_str(const char[] content, any ...);
 	public native bool YEET(
 		  SRCWRWebsocketConnectionCallback connectcb
