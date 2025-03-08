@@ -333,6 +333,7 @@ pub fn rust_SRCWRJSON_ToFile_Inner<T: Write>(
 		"{}",
 		if 0 != (flags & J_FILE_NULL_TERMINATE) { "\0" } else { "\n" }
 	);
+	writer.flush().ok()?;
 	Some(())
 }
 

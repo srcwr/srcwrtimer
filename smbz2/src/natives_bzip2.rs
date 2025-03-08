@@ -16,6 +16,7 @@ use core::ffi::c_char;
 use core::ffi::c_void;
 use std::io::BufReader;
 use std::io::BufWriter;
+use std::io::Write;
 use std::num::NonZeroU32;
 use std::ptr::NonNull;
 
@@ -43,7 +44,7 @@ fn worker_internal(info: &Bz2Info) -> BZ_Error {
 		return BZ_Error::BZ_IO_ERROR_OUTPUT;
 	};
 	let inbuf = BufReader::new(infilefull);
-	let mut outbuf = BufWriter::new(outfilefull);
+	let mut outbuf: BufWriter<std::fs::File> = BufWriter::new(outfilefull);
 
 	let ioresult = if let Some(compressionLevel) = info.compressionLevel {
 		let compressionLevel = bzip2::Compression::new(compressionLevel as u32);
@@ -55,7 +56,10 @@ fn worker_internal(info: &Bz2Info) -> BZ_Error {
 	};
 
 	match ioresult {
-		Ok(_) => BZ_Error::BZ_OK,
+		Ok(_) => match outbuf.flush() {
+			Ok(_) => BZ_Error::BZ_OK,
+			_ => BZ_Error::BZ_IO_ERROR,
+		},
 		_ => BZ_Error::BZ_IO_ERROR,
 	}
 }
