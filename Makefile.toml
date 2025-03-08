@@ -37,12 +37,12 @@ dependencies = [
 [tasks.full.windows]
 dependencies = [
 	"rustup-linux",
-	"rustup-msvc",
+	"rustup-windows",
 	"clone-alliedmodders",
 	"install-sm-bins",
 	"install-zig",
 	"linux",
-	"msvc",
+	"windows",
 	"copy-srcwrtimer",
 	"copy-extensions",
 	"compile-srcwrtimer-scripts",
@@ -50,7 +50,7 @@ dependencies = [
 
 [tasks.x]
 dependencies = [
-	"msvc",
+	"windows",
 	"copy-srcwrtimer",
 	"copy-extensions",
 	"compile-srcwrtimer-scripts",
@@ -58,7 +58,7 @@ dependencies = [
 
 [tasks.y]
 dependencies = [
-	"msvc",
+	"windows",
 	"copy-srcwrtimer",
 	"copy-extensions",
 ]
@@ -315,14 +315,18 @@ command = "cargo"
 #   objdump -T bin/*.so | grep GLIBC | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu
 args = ["zigbuild", "--release", "--target", "${TARGETARCH}-unknown-linux-gnu.2.29"]
 
+# alias :^)
 [tasks.msvc]
+dependencies = ["windows"]
+
+[tasks.windows]
 toolchain = "nightly"
 command = "cargo"
 #env = { "CARGO_LOG" = "cargo::core::compiler::fingerprint=info" }
 args = ["build", "--release", "--target", "${TARGETARCH}-pc-windows-msvc"]
 
 # TODO: xwin not quite worky...
-#[tasks.msvc.linux]
+#[tasks.windows.linux]
 #toolchain = "nightly"
 #command = "cargo"
 #args = ["xwin", "build", "--xwin-arch", "x86", "--release", "--target", "${TARGETARCH}-pc-windows-msvc"]
@@ -336,7 +340,7 @@ toolchain = "nightly"
 command = "rustup"
 args = ["target", "add", "${TARGETARCH}-unknown-linux-gnu"]
 
-[tasks.rustup-msvc]
+[tasks.rustup-windows]
 toolchain = "nightly"
 command = "rustup"
 args = ["target", "add", "${TARGETARCH}-pc-windows-msvc"]

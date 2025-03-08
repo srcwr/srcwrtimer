@@ -19,13 +19,14 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
+        targetos: ["linux", "windows"]
         targetbits: ["x32", "x64"]
-        targetos: ["linux", "msvc"]
 
     steps:
       - name: Prepare env
         shell: bash
         run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA::7}" >> $GITHUB_ENV
+      # checkout current repo...
       - uses: actions/checkout@v4
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.10.12
@@ -37,7 +38,7 @@ jobs:
       # This is `cargo make full` but turned into steps so you can have better progress visibility
       - name: Install Rust toolchains
         run: |
-          cargo make rustup-${{ matrix.os }}
+          cargo make --profile ${{ matrix.targetbits }} rustup-${{ matrix.targetos }}
       - name: Clone alliedmodders repositories
         run: cargo make clone-alliedmodders
       - name: Setup SourcePawn Compiler
@@ -59,5 +60,5 @@ jobs:
       - name: Upload package
         uses: actions/upload-artifact@v4
         with:
-          name: srcwrtimer-${{ github.head_ref || github.ref_name }}-${{ env.GITHUB_SHA_SHORT }}
+          name: srcwrtimer-${{ github.head_ref || github.ref_name }}-${{ env.GITHUB_SHA_SHORT }}-${{ matrix.targetos }}-${{ matrix.targetbits }}
           path: _package/srcwrtimer
