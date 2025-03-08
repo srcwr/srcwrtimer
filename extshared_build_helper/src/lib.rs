@@ -22,6 +22,8 @@ use vergen_gitcl::GitclBuilder;
 
 static SRCWRTIMER_ROOT_DIR: std::sync::LazyLock<String> =
 	std::sync::LazyLock::new(|| std::env::var("SRCWRTIMER_ROOT_DIR").unwrap());
+static IS_X64: std::sync::LazyLock<bool> =
+	std::sync::LazyLock::new(|| std::env::var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap() == "64");
 
 pub fn generate_inc_defines_and_enums(outdir: &str, incfile: &str, name: &str) {
 	println!("cargo:rerun-if-changed={}", incfile);
@@ -158,18 +160,32 @@ pub fn smext_hl2sdk_for_good_games(build: &mut cc::Build, sdk_name: &str, sdk_id
 	}
 
 	if like_msvc {
-		build.define("COMPILER_MSVC", "1").define("COMPILER_MSVC64", "1");
+		if *IS_X64 {
+			build.define("COMPILER_MSVC64", "1");
+		} else {
+			build.define("COMPILER_MSVC32", "1");
+		}
+		build.define("COMPILER_MSVC", "1");
 	} else {
 		build.define("COMPILER_GCC", "1");
 	}
 
 	let (lib_folder, links) = if target_windows {
-		(format!("{sdk_path}/lib/public/x64"), vec![
-			"tier0", "tier1", "vstdlib", "mathlib",
-		])
+		(
+			if *IS_X64 {
+				format!("{sdk_path}/lib/public/x64")
+			} else {
+				format!("{sdk_path}/lib/public/x86")
+			},
+			vec!["tier0", "tier1", "vstdlib", "mathlib"],
+		)
 	} else {
 		(
-			format!("{sdk_path}/lib/public/linux64"),
+			if *IS_X64 {
+				format!("{sdk_path}/lib/public/linux64")
+			} else {
+				format!("{sdk_path}/lib/public/linux")
+			},
 			// vec!["tier1_i486", "mathlib_i486"] // ??????
 			vec![],
 		)
@@ -212,9 +228,13 @@ pub fn link_sm_detours(mainbuild: &mut cc::Build) {
 	slurp_folder(&mut detours, &format!("{}/public/safetyhook/src", sm));
 
 	if like_msvc {
+		if *IS_X64 {
+			detours.define("COMPILER_MSVC64", "1");
+		} else {
+			detours.define("COMPILER_MSVC32", "1");
+		}
 		detours
 			.define("COMPILER_MSVC", "1")
-			.define("COMPILER_MSVC64", "1")
 			.flag("/std:c++latest") // /std:c++23 doesn't exist yet!! crazy! TODO: periodically check this https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version
 			.flag("/permissive-")
 			// C++ stack unwinding & extern "C" don't throw...
@@ -289,25 +309,35 @@ pub fn smext_build() -> cc::Build {
 		// Same with .dll file name...
 		// println!("cargo::rustc-link-arg=/OUT:_build\\i686-pc-windows-msvc\\release\\{}.ext.dll", std::env::var("CARGO_PKG_NAME").unwrap());
 
+		if *IS_X64 {
+			build
+				.flag("/d2archSSE42") // sse4.2!
+				.define("COMPILER_MSVC64", "1");
+		} else {
+			build.define("COMPILER_MSVC32", "1");
+		}
+
 		build
 			.define("COMPILER_MSVC", "1")
-			.define("COMPILER_MSVC64", "1")
 			.flag("/std:c++latest") // /std:c++23 doesn't exist yet!! crazy! TODO: periodically check this https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version
 			// We also set /Zi and /FS in .cargo/config.toml with some cc-crate target-specific environment variables
-			.flag("/d2archSSE42") // sse4.2!
 			.flag("/Zi") // debug info things https://learn.microsoft.com/en-us/cpp/build/reference/z7-zi-zi-debug-information-format
 			.flag("/FS") // force synchronous pdb writes https://learn.microsoft.com/en-us/cpp/build/reference/fs-force-synchronous-pdb-writes
 			.flag("/wd4100") // disable warning C4100: unreferenced formal parameter
 			.flag("/EHsc") // https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model
 			// "This needs to be after our optimization flags which could otherwise disable it."
-			// "Don't omit the frame pointer.""
+			// "Don't omit the frame pointer." (this doesn't do anything in x64)
 			.flag("/Oy-");
 	} else {
+		if *IS_X64 {
+			build.flag("-mcpu=x86_64_v2");
+		} else {
+			build.flag("-msse").flag("-m32");
+		}
 		build
 			.define("HAVE_STDINT_H", None)
 			.define("GNUC", None)
 			.define("COMPILER_GCC", "1")
-			.flag("-mcpu=x86_64_v2")
 			.flag("-std=c++23")
 			.flag("-Wno-unknown-pragmas")
 			.flag("-Wno-dangling-else")
