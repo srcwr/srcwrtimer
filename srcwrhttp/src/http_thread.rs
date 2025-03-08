@@ -368,6 +368,7 @@ async fn download_handler(resp: reqwest::Response, download_path: &str) -> anyho
 		while let Some(chunk) = rx.recv().await {
 			bufwriter.write_all(&chunk).await?;
 		}
+		bufwriter.flush().await?;
 		bufwriter.into_inner().sync_all().await?;
 		anyhow::Ok(())
 	});
