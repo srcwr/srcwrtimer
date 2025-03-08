@@ -91,7 +91,7 @@ ZIGEXT = { source = "${OS}", default_value = "tar.xz", mapping = {"Windows_NT" =
 CARGO_ZIGBUILD_ZIG_PATH = { source = "${CI}", default_value = "${EXTERNALDIR}/zig-${HOSTOSPLAIN}/zig", mapping = {"true" = "zig"} }
 HOSTZIGTOOLCHAIN = { source = "${OS}", default_value = "x86_64-linux", mapping = {"Windows_NT" = "x86_64-windows"} }
 
-MMBRANCH="master" # Not always instep with SM versions.
+MMBRANCH="1.12-dev" # Not always instep with SM versions.
 SMSHORTVER="1.12" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
 SMBINVER="sourcemod-1.12.0-git7193-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
 SMBINEXT = { source = "${OS}", default_value = "tar.gz", mapping = {"Windows_NT" = "zip"} }
