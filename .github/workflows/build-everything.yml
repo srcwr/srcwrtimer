@@ -17,6 +17,10 @@ env:
 jobs:
   build_everything:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        targetbits: ["x32", "x64"]
+        targetos: ["linux", "msvc"]
 
     steps:
       - name: Prepare env
@@ -33,8 +37,7 @@ jobs:
       # This is `cargo make full` but turned into steps so you can have better progress visibility
       - name: Install Rust toolchains
         run: |
-          cargo make rustup-linux
-          cargo make rustup-msvc
+          cargo make rustup-${{ matrix.os }}
       - name: Clone alliedmodders repositories
         run: cargo make clone-alliedmodders
       - name: Setup SourcePawn Compiler
@@ -45,14 +48,8 @@ jobs:
         uses: mlugg/setup-zig@v1
         with:
           version: '0.13.0' ### UPDATE Makefile.toml whenever this is updated.
-      - name: Build extensions for Linux (x32)
-        run: cargo make --profile x32 linux
-      - name: Build extensions for Windows/MSVC (x32)
-        run: cargo make --profile x32 msvc
-      - name: Build extensions for Linux (x64)
-        run: cargo make --profile x64 linux
-      - name: Build extensions for Windows/MSVC (x64)
-        run: cargo make --profile x64 msvc
+      - name: Build extensions
+        run: cargo make --profile ${{ matrix.targetbits }} ${{ matrix.targetos }}
       - name: Copy things to _package
         run: |
           cargo make copy-srcwrtimer
