@@ -107,7 +107,9 @@ That's where all the SourceMod files are dumped after being built. Extensions, p
 # then install cargo-make...
 cargo install --force cargo-make
 # this will download zig, metamod-source, sourcemod, and hl2sdk... (and rust toolchains for i686-pc-windows-msvc & i686-unknown-linux-gnu), then it'll build things
-cargo make full
+cargo make --profile x32 full
+# this will build x64 (with rust toolchains for x86_64-pc-windows-msvc & x86_64-unknown-linux-gnu)
+cargo make --profile x64 full
 ```
 
 ## Contributing

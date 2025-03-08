@@ -97,6 +97,16 @@ SMBINVER="sourcemod-1.12.0-git7193-${HOSTOSPLAIN}" ### UPDATE .github/workflows/
 SMBINEXT = { source = "${OS}", default_value = "tar.gz", mapping = {"Windows_NT" = "zip"} }
 SPCOMP = { source = "${OS}", default_value = "spcomp64", mapping = {"Windows_NT" = "spcomp"} }
 
+
+TARGETARCH = "i686"
+[env.x64]
+# cargo make --profile x64 full
+TARGETARCH = "x86_64"
+[env.x32]
+# cargo make --profile x32 full
+TARGETARCH = "i686"
+
+
 ################################################################################
 ## asdf
 ################################################################################
@@ -211,25 +221,24 @@ do_everything
 [tasks.copy-extensions]
 script_runner = "@duckscript"
 script = '''
-extdir = set "${PACKAGEDIR}/srcwrtimer/addons/sourcemod/extensions/x64"
-builddir = set "${CARGO_MAKE_WORKING_DIRECTORY}/_build"
-
 fn copy_ext
+	extdir = set "${PACKAGEDIR}/srcwrtimer/addons/sourcemod/extensions${3}"
 	rm "${extdir}/${1}.ext.dll"
 	rm "${extdir}/${1}.pdb"
 	rm "${extdir}/${1}.ext.so"
-	if is_path_exists "${builddir}/x86_64-pc-windows-msvc/release/${1}.dll"
-		cp "${builddir}/x86_64-pc-windows-msvc/release/${1}.dll"       "${extdir}/${1}.ext.dll"
-		cp "${builddir}/x86_64-pc-windows-msvc/release/${1}.pdb"       "${extdir}/${1}.pdb"
+	if is_path_exists "${2}/${4}-pc-windows-msvc/release/${1}.dll"
+		cp "${2}/${4}-pc-windows-msvc/release/${1}.dll"       "${extdir}/${1}.ext.dll"
+		cp "${2}/${4}-pc-windows-msvc/release/${1}.pdb"       "${extdir}/${1}.pdb"
 	end
-	if is_path_exists "${builddir}/x86_64-unknown-linux-gnu/release/lib${1}.so"
-		cp "${builddir}/x86_64-unknown-linux-gnu/release/lib${1}.so"   "${extdir}/${1}.ext.so"
+	if is_path_exists "${2}/${4}-unknown-linux-gnu/release/lib${1}.so"
+		cp "${2}/${4}-unknown-linux-gnu/release/lib${1}.so"   "${extdir}/${1}.ext.so"
 	end
 end
 
 members = split "${CARGO_MAKE_CRATE_WORKSPACE_MEMBERS}" ","
 for member in ${members}
-	copy_ext ${member}
+	copy_ext ${member} "${CARGO_MAKE_WORKING_DIRECTORY}/_build/" "" "i686"
+	copy_ext ${member} "${CARGO_MAKE_WORKING_DIRECTORY}/_build" "/x64" "x86_64"
 end
 release ${handle}
 '''
@@ -304,19 +313,19 @@ toolchain = "nightly"
 command = "cargo"
 # CS:S binaries are now at 2.29 according to this:
 #   objdump -T bin/*.so | grep GLIBC | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu
-args = ["zigbuild", "--release", "--target", "x86_64-unknown-linux-gnu.2.29"]
+args = ["zigbuild", "--release", "--target", "${TARGETARCH}-unknown-linux-gnu.2.29"]
 
 [tasks.msvc]
 toolchain = "nightly"
 command = "cargo"
 #env = { "CARGO_LOG" = "cargo::core::compiler::fingerprint=info" }
-args = ["build", "--release", "--target", "x86_64-pc-windows-msvc"]
+args = ["build", "--release", "--target", "${TARGETARCH}-pc-windows-msvc"]
 
 # TODO: xwin not quite worky...
-[tasks.msvc.linux]
-toolchain = "nightly"
-command = "cargo"
-args = ["xwin", "build", "--xwin-arch", "x86_64", "--release", "--target", "x86_64-pc-windows-msvc"]
+#[tasks.msvc.linux]
+#toolchain = "nightly"
+#command = "cargo"
+#args = ["xwin", "build", "--xwin-arch", "x86", "--release", "--target", "${TARGETARCH}-pc-windows-msvc"]
 
 ################################################################################
 ## asdf
@@ -325,12 +334,12 @@ args = ["xwin", "build", "--xwin-arch", "x86_64", "--release", "--target", "x86_
 [tasks.rustup-linux]
 toolchain = "nightly"
 command = "rustup"
-args = ["target", "add", "x86_64-unknown-linux-gnu"]
+args = ["target", "add", "${TARGETARCH}-unknown-linux-gnu"]
 
 [tasks.rustup-msvc]
 toolchain = "nightly"
 command = "rustup"
-args = ["target", "add", "x86_64-pc-windows-msvc"]
+args = ["target", "add", "${TARGETARCH}-pc-windows-msvc"]
 
 ################################################################################
 ## asdf

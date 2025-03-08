@@ -45,10 +45,14 @@ jobs:
         uses: mlugg/setup-zig@v1
         with:
           version: '0.13.0' ### UPDATE Makefile.toml whenever this is updated.
-      - name: Build extensions for Linux
-        run: cargo make linux
-      - name: Build extensions for Windows/MSVC
-        run: cargo make msvc
+      - name: Build extensions for Linux (x32)
+        run: cargo make --profile x32 linux
+      - name: Build extensions for Windows/MSVC (x32)
+        run: cargo make --profile x32 msvc
+      - name: Build extensions for Linux (x64)
+        run: cargo make --profile x64 linux
+      - name: Build extensions for Windows/MSVC (x64)
+        run: cargo make --profile x64 msvc
       - name: Copy things to _package
         run: |
           cargo make copy-srcwrtimer
