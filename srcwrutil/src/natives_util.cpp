@@ -170,6 +170,7 @@ bool Extension_OnLoad(char* error, size_t maxlength)
 void Extension_OnUnload()
 {
 	g_CDownloadListGenerator_OnResourcePrecachedFullPath_detour->Destroy();
+	g_CDownloadListGenerate_SetStringTable_detour->Destroy();
 	g_CNavMesh_Load_detour->Destroy();
 	gameconfs->CloseGameConfigFile(g_GameConfig);
 
