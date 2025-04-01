@@ -363,10 +363,12 @@ pub fn smext_build() -> cc::Build {
 	}
 
 	if target_windows {
+		if *IS_X64 {
+			build.define("WIN64", None);
+		}
 		build
 			.define("_CRT_SECURE_NO_WARNINGS", None)
 			.define("WIN32", None)
-			.define("WIN64", None)
 			.define("_WINDOWS", None);
 	} else {
 		build
