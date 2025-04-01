@@ -144,6 +144,7 @@ pub fn smext_hl2sdk_for_good_games(build: &mut cc::Build, sdk_name: &str, sdk_id
 		.include(format!("{}/public/game/server", sdk_path))
 		.include(format!("{}/public/toolframework", sdk_path))
 		.include(format!("{}/game/shared", sdk_path))
+		.include(format!("{}/game/server", sdk_path))
 		.include(format!("{}/common", sdk_path))
 		.define("GAME_DLL", None)
 		.define(
