@@ -15,6 +15,8 @@ use std::net::IpAddr;
 use std::net::Ipv4Addr;
 use std::str::FromStr;
 
+use crate::ip_addr;
+
 unsafe extern "C" {
 	pub fn SteamWorks_GetPublicIP() -> u32;
 }
@@ -34,7 +36,7 @@ pub fn commandline_bindip() -> Option<IpAddr> {
 	for a in std::env::args() {
 		if next_is_ip {
 			let ip = Ipv4Addr::from_str(&a).ok()?;
-			return if ip.is_global() { Some(ip.into()) } else { None };
+			return if ip_addr::is_global(&ip) { Some(ip.into()) } else { None };
 		}
 		next_is_ip = a == "-ip" || a == "+ip";
 	}

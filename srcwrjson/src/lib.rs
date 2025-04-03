@@ -3,7 +3,6 @@
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 #![allow(non_snake_case)]
-#![feature(let_chains)]
 
 mod natives_json;
 

@@ -309,7 +309,7 @@ dependencies = [
 ################################################################################
 
 [tasks.linux]
-toolchain = "nightly"
+#toolchain = "nightly"
 command = "cargo"
 # CS:S binaries are now at 2.29 according to this:
 #   objdump -T bin/*.so | grep GLIBC | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu
@@ -320,7 +320,7 @@ args = ["zigbuild", "--release", "--target", "${TARGETARCH}-unknown-linux-gnu.2.
 dependencies = ["windows"]
 
 [tasks.windows]
-toolchain = "nightly"
+#toolchain = "nightly"
 command = "cargo"
 #env = { "CARGO_LOG" = "cargo::core::compiler::fingerprint=info" }
 args = ["build", "--release", "--target", "${TARGETARCH}-pc-windows-msvc"]
@@ -336,12 +336,12 @@ args = ["build", "--release", "--target", "${TARGETARCH}-pc-windows-msvc"]
 ################################################################################
 
 [tasks.rustup-linux]
-toolchain = "nightly"
+#toolchain = "nightly"
 command = "rustup"
 args = ["target", "add", "${TARGETARCH}-unknown-linux-gnu"]
 
 [tasks.rustup-windows]
-toolchain = "nightly"
+#toolchain = "nightly"
 command = "rustup"
 args = ["target", "add", "${TARGETARCH}-pc-windows-msvc"]
 

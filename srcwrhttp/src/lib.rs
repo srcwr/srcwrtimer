@@ -3,13 +3,9 @@
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 #![allow(non_snake_case)]
-#![feature(ip)]
-#![feature(let_chains)]
-// TODO: >the feature `option_get_or_insert_default` has been stable since 1.83.0-nightly and no longer requires an attribute to enable
-#![allow(stable_features)]
-#![feature(option_get_or_insert_default)]
 
 mod http_thread;
+mod ip_addr;
 mod natives_http;
 mod reqwest_text_with_charset;
 mod server_ip;
