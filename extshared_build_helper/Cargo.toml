@@ -9,7 +9,7 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
-#cbindgen = { version = "0.28", default-features = false } # we don't want a dep on clap so 'default-features = false'
+cbindgen = { version = "0.28", default-features = false } # we don't want a dep on clap so 'default-features = false'
 cc = { version = "1.0", features = ["parallel"] }
 regex = "1"
 vergen-gitcl = { version = "1.0", features = ["build"] }

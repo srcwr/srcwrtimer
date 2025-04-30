@@ -5,7 +5,7 @@
 
 #include "../../extshared/src/extension.h"
 #include "../../extshared/src/coreident.hpp"
-#include "rust_exports_bzip2.h"
+#include "rust_exports_smbz2.h"
 
 
 extern const sp_nativeinfo_t BZ2Natives[];

@@ -8,6 +8,8 @@ fn main() {
 	let outdir = std::env::var("OUT_DIR").unwrap();
 	generate_inc_defines_and_enums(&outdir, "../srcwrtimer/addons/sourcemod/scripting/include/bzip2.inc", "BZIP2");
 
+	do_cbindgen();
+
 	let build = smext_build();
 	compile_lib(build, "smext");
 }

@@ -5,6 +5,7 @@
 use extshared_build_helper::*;
 
 fn main() {
+	do_cbindgen();
 	let mut build = smext_build();
 	smext_css(&mut build);
 	link_sm_detours(&mut build);

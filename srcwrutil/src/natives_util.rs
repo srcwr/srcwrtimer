@@ -41,21 +41,23 @@ We could also look into an arena and then store the string slices in a Vec:
 	https://docs.rs/typed-arena/latest/typed_arena/struct.Arena.html#method.alloc_str
 */
 
+pub struct SmolStringList;
+
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_handle_destroy_SmolStringList(object: u32) {
+pub extern "C" fn rust_handle_destroy_SmolStringList(object: &mut SmolStringList) {
 	//
 }
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_handle_size_SmolStringList(object: u32, size: &mut u32) -> bool {
+pub extern "C" fn rust_handle_size_SmolStringList(object: &mut SmolStringList, size: &mut u32) -> bool {
 	false
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRUTIL_GetSHA1_File(fileobject: &mut IFileObject, buffer: *mut u8) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRUTIL_GetSHA1_File(fileobject: &mut IFileObject, buffer: *mut c_char) -> Option<NonZeroU32> {
 	let mut hasher = Sha1::new();
 	if let Ok(bytes) = std::io::copy(fileobject, &mut hasher) {
 		let result = hasher.finalize();
-		let buffer = unsafe { std::slice::from_raw_parts_mut(buffer, 40) };
+		let buffer = unsafe { std::slice::from_raw_parts_mut(buffer as *mut _, 40) };
 		hex::encode_to_slice(result, buffer).unwrap();
 		NonZeroU32::new(bytes as u32)
 	} else {
@@ -64,13 +66,13 @@ pub extern "C" fn rust_SRCWRUTIL_GetSHA1_File(fileobject: &mut IFileObject, buff
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn rust_SRCWRUTIL_GetSHA1_FilePath(filename: *const c_char, buffer: *mut u8) -> Option<NonZeroU32> {
+pub extern "C" fn rust_SRCWRUTIL_GetSHA1_FilePath(filename: *const c_char, buffer: *mut c_char) -> Option<NonZeroU32> {
 	let filename = extshared::strxx(filename, false, 0)?;
 	let mut file = std::fs::File::open(filename).ok()?;
 	let mut hasher = Sha1::new();
 	if let Ok(bytes) = std::io::copy(&mut file, &mut hasher) {
 		let result = hasher.finalize();
-		let buffer = unsafe { std::slice::from_raw_parts_mut(buffer, 40) };
+		let buffer = unsafe { std::slice::from_raw_parts_mut(buffer as *mut _, 40) };
 		hex::encode_to_slice(result, buffer).unwrap();
 		NonZeroU32::new(bytes as u32)
 	} else {

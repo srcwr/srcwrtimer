@@ -11,7 +11,7 @@
 
 #include "../../extshared/src/extension.h"
 #include "../../extshared/src/coreident.hpp"
-#include "rust_exports_util.h"
+#include "rust_exports_srcwrutil.h"
 #include <edict.h> // CGlobalVars
 #include <CDetour/detours.h>
 #include <filesystem.h>
@@ -30,12 +30,12 @@ extern const sp_nativeinfo_t UtilNatives[];
 void MyExtension::OnHandleDestroy(HandleType_t type, void* object)
 {
 	if (type == g_SmolStringListType)
-		rust_handle_destroy_SmolStringList(object);
+		rust_handle_destroy_SmolStringList((SmolStringList*)object);
 }
 bool MyExtension::GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size)
 {
 	if (type == g_SmolStringListType)
-		return rust_handle_size_SmolStringList(object, size);
+		return rust_handle_size_SmolStringList((SmolStringList*)object, size);
 	return false;
 }
 

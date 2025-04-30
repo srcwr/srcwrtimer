@@ -63,19 +63,19 @@ You'll probably need to copy/look-at some code from the extensions in *this* rep
 
 
 ### Why doesn't this use C++ helper crates?
-I just didn't... I could say it's simpler or easier to keep the C++ separate, which might be true. There's obvious value in using bindgen/cbindgen so you don't mess up FFI function declarations. The inline C++ with the `cpp` crate looks very useful. The original srcwrtimer extensions mainly keep the SourceMod interfacing on the C++ side which calls to Rust functions to natives, so there's not a lot of fancy `Rust <-> C++` FFI going on.
+It's a bit simpler to just make headers with extern functions in both Rust & C++, but things will be investigated more eventually. Using cbindgen and bindgen is planned too.
 
-Helper crates (which aren't used):
-- [cpp](https://crates.io/crates/cpp)
+Helper crates:
+- [cpp](https://crates.io/crates/cpp) (Unused)
   - Allows you to embed C++ code in a Rust file.
-- [cxx](https://crates.io/crates/cxx)
+- [cxx](https://crates.io/crates/cxx) (Unused)
   - A `Rust <-> C++` binding/bridging crate.
-- [autocxx](https://crates.io/crates/autocxx)
+- [autocxx](https://crates.io/crates/autocxx) (Unused)
   - A more magical cxx.
-- [bindgen](https://crates.io/crates/bindgen)
+- [bindgen](https://crates.io/crates/bindgen) (TODO)
   - Generate Rust bindings to C/C++ libraries...
-- [cbindgen](https://crates.io/crates/cbindgen)
-  - Generate C/C++ bindings to Rust libraries... TODO
+- [cbindgen](https://crates.io/crates/cbindgen) (WIP usage)
+  - Generate C/C++ bindings to Rust libraries...
 
 ### Why does this use C++ at all?
 Interfacing with SourceMod through Rust can be tedious. You *can* do it in pure Rust thanks to the [sm-ext-rs](https://github.com/srcwr/sm-ext-rs) (srcwr fork) crate that [asherkin](https://github.com/asherkin) made, but lacking hl2sdk support makes it impractical for many things.
