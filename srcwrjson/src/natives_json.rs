@@ -18,6 +18,7 @@ use std::io::Write;
 use std::num::NonZeroI32;
 use std::num::NonZeroU32;
 use std::num::NonZeroUsize;
+use std::sync::LazyLock;
 
 use extshared::ICellArray::ICellArray;
 use extshared::IFileObject::IFileObject;
@@ -212,7 +213,8 @@ fn unescape_pointer3<'a>(pointer: &str, buf: &'a mut SmallVec<[u8; 128]>) -> &'a
 	buf.clear();
 
 	loop {
-		if let Some(pos) = memx::memmem(temp, b"~1") {
+		static TRANS_1: LazyLock<memchr::memmem::Finder> = LazyLock::new(|| memchr::memmem::Finder::new("~1"));
+		if let Some(pos) = TRANS_1.find(temp) {
 			buf.extend_from_slice(&temp[..pos]);
 			buf.push(b'/');
 			temp = &temp[pos + 2..];
@@ -225,8 +227,9 @@ fn unescape_pointer3<'a>(pointer: &str, buf: &'a mut SmallVec<[u8; 128]>) -> &'a
 		}
 	}
 
+	static TRANS_0: LazyLock<memchr::memmem::Finder> = LazyLock::new(|| memchr::memmem::Finder::new("~0"));
 	let mut cursor = 0;
-	while let Some(pos) = memx::memmem(&buf.as_slice()[cursor..], b"~0") {
+	while let Some(pos) = TRANS_0.find(&buf.as_slice()[cursor..]) {
 		cursor += pos;
 		buf.remove(cursor + 1);
 	}

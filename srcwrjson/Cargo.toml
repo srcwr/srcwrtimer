@@ -19,7 +19,7 @@ extshared.workspace = true
 smallvec = "1"
 mimalloc = { version = "*", default-features = false } #{ version = "0.1.37", features = [] } # TODO: "override"...
 
-memx = "0.1"
+memchr = "2.7.4"
 
 # TODO: Look into https://github.com/google/serde_json_lenient for trailing commas & comments?
 serde_json = { version = "1", features = ["std", "float_roundtrip"] }

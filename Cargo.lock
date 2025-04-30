@@ -939,15 +939,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
-name = "memx"
-version = "0.1.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93022fcc0eab2dc9dd134e362592e06f0b3c0aa549ae91d8b3e539e56c2a0687"
-dependencies = [
- "cpufeatures",
-]
-
-[[package]]
 name = "mimalloc"
 version = "0.1.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1527,7 +1518,7 @@ version = "1.0.0"
 dependencies = [
  "extshared",
  "extshared_build_helper",
- "memx",
+ "memchr",
  "mimalloc",
  "serde_json",
  "smallvec",
