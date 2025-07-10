@@ -93,7 +93,7 @@ HOSTZIGTOOLCHAIN = { source = "${OS}", default_value = "x86_64-linux", mapping =
 
 MMBRANCH="1.12-dev" # Not always instep with SM versions.
 SMSHORTVER="1.12" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
-SMBINVER="sourcemod-1.12.0-git7193-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
+SMBINVER="sourcemod-1.12.0-git7210-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
 SMBINEXT = { source = "${OS}", default_value = "tar.gz", mapping = {"Windows_NT" = "zip"} }
 SPCOMP = { source = "${OS}", default_value = "spcomp64", mapping = {"Windows_NT" = "spcomp"} }
 

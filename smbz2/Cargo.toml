@@ -16,5 +16,4 @@ extshared_build_helper.workspace = true
 
 [dependencies]
 extshared.workspace = true
-#bzip2 = { git = "https://github.com/srcwr/bzip2-rs.git", rev = "bd66f7c", features=["static"] }
-bzip2 = { version = "0.5", default-features = false, features = ["libbz2-rs-sys"] }
+bzip2 = { version = "0.6" }
