@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "smsdk_ext.h"
+#include <smsdk_ext.h>
 #include "rust_exports.h"
 
 
