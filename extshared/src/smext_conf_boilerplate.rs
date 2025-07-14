@@ -2,22 +2,21 @@
 // Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
-// TODO: It would be cool if we could make these macros only define these functions if the file does not already define them...
-//       That might be proc-macro territory though which sucks...
-
 #[macro_export]
-macro_rules! smext_conf_boilerplate_extension_info {
-	() => {
-		use std::io::Write;
-
+macro_rules! smext_conf_boilerplate_extension_info_single {
+	(name) => {
 		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_name() -> *const u8 {
 			concat!(env!("CARGO_PKG_NAME"), "\0").as_ptr()
 		}
+	};
+	(description) => {
 		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_description() -> *const u8 {
 			concat!(env!("CARGO_PKG_DESCRIPTION"), "\0").as_ptr()
 		}
+	};
+	(version) => {
 		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_version() -> *const u8 {
 			static VER: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
@@ -37,14 +36,20 @@ macro_rules! smext_conf_boilerplate_extension_info {
 			//concat!(env!("CARGO_PKG_VERSION"), "\0").as_ptr()
 			VER.as_ptr()
 		}
+	};
+	(author) => {
 		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_author() -> *const u8 {
 			concat!(env!("CARGO_PKG_AUTHORS"), "\0").as_ptr()
 		}
+	};
+	(datestring) => {
 		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_datestring() -> *const u8 {
 			concat!(env!("VERGEN_BUILD_DATE"), "\0").as_ptr()
 		}
+	};
+	(url) => {
 		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_url() -> *const u8 {
 			concat!(
@@ -55,18 +60,24 @@ macro_rules! smext_conf_boilerplate_extension_info {
 			)
 			.as_ptr()
 		}
+	};
+	(logtag) => {
 		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_logtag() -> *const u8 {
 			concat!(env!("CARGO_PKG_NAME"), "\0").as_ptr()
 		}
+	};
+	(license) => {
 		#[unsafe(no_mangle)]
 		pub extern "C" fn rust_conf_license() -> *const u8 {
 			concat!(env!("CARGO_PKG_LICENSE"), "\0").as_ptr()
 		}
-
+	};
+	(load) => {
 		#[unsafe(no_mangle)]
 		#[allow(clippy::not_unsafe_ptr_arg_deref)]
 		pub extern "C" fn rust_sdk_on_load_wrapper(error: *mut u8, maxlength: usize, late: bool) -> bool {
+			use std::io::Write as _;
 			extshared::export_GetSMExtAPI::doit();
 			match rust_sdk_on_load(late) {
 				Ok(_) => true,
@@ -78,6 +89,18 @@ macro_rules! smext_conf_boilerplate_extension_info {
 				},
 			}
 		}
+	};
+}
+
+#[macro_export]
+macro_rules! smext_conf_boilerplate_extension_info {
+	() => {
+		extshared::smext_conf_boilerplate_extension_info!(name, description, version, author, datestring, url, logtag, license, load);
+	};
+	($($IDENT:ident),+) => {
+		$(
+			extshared::smext_conf_boilerplate_extension_info_single!($IDENT);
+		)+
 	};
 }
 
