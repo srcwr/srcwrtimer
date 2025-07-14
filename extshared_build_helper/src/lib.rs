@@ -393,8 +393,5 @@ pub fn do_cbindgen() {
 			.expect("couldn't find ../extshared_build_helper/cbindgen.toml"),
 	)
 	.expect("cbindgen failed to generate headers")
-	.write_to_file(format!(
-		"src/rust_exports_{}.h",
-		std::env::var("CARGO_PKG_NAME").unwrap()
-	));
+	.write_to_file(format!("src/rust_exports_{}.h", std::env::var("CARGO_PKG_NAME").unwrap()));
 }

@@ -10,7 +10,7 @@ use std::io::Write;
 /// cbindgen:no-export
 #[repr(transparent)]
 pub struct IFileObject {
-	pub vtable: usize
+	pub vtable: usize,
 }
 
 unsafe extern "C" {
