@@ -51,6 +51,9 @@ unsafe extern "C" {
 
 	pub fn cpp_report_error(ctx: NonNull<c_void>, err: *const u8);
 
+	pub unsafe fn cpp_extension_log_message(msg: *const u8);
+	pub unsafe fn cpp_extension_log_error(msg: *const u8);
+
 	pub fn cpp_local_to_phys_addr(ctx: NonNull<c_void>, addr: i32) -> *mut u8;
 	pub fn cpp_string_to_local_utf8(ctx: NonNull<c_void>, addr: i32, maxbytes: usize, s: *const u8) -> usize;
 }

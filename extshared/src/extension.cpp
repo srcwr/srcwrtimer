@@ -248,6 +248,16 @@ PLATFORM_EXTERN_C void cpp_report_error(IPluginContext* ctx, const char* err)
 	ctx->ReportError("%s", err);
 }
 
+PLATFORM_EXTERN_C void cpp_extension_log_message(const char* msg)
+{
+	smutils->LogMessage(myself, "%s", msg);
+}
+
+PLATFORM_EXTERN_C void cpp_extension_log_error(const char* err)
+{
+	smutils->LogError(myself, "%s", err);
+}
+
 PLATFORM_EXTERN_C void* cpp_local_to_phys_addr(IPluginContext* ctx, cell_t addr)
 {
 	cell_t* phys_addr = NULL;
