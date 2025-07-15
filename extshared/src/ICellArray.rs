@@ -6,6 +6,7 @@ use core::ffi::c_char;
 
 // TODO: Rename?
 #[repr(C)]
+#[derive(Debug)]
 pub struct ICellArray {
 	pub vtable:    usize,
 	pub data:      *const c_char,
