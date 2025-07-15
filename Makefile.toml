@@ -240,7 +240,6 @@ for member in ${members}
 	copy_ext ${member} "${CARGO_MAKE_WORKING_DIRECTORY}/_build/" "" "i686"
 	copy_ext ${member} "${CARGO_MAKE_WORKING_DIRECTORY}/_build" "/x64" "x86_64"
 end
-release ${handle}
 '''
 
 ################################################################################
