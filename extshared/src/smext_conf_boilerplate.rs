@@ -78,7 +78,7 @@ macro_rules! smext_conf_boilerplate_extension_info_single {
 		#[allow(clippy::not_unsafe_ptr_arg_deref)]
 		pub extern "C" fn rust_sdk_on_load_wrapper(error: *mut u8, maxlength: usize, late: bool) -> bool {
 			use std::io::Write as _;
-			extshared::export_GetSMExtAPI::doit();
+			extshared::export_sourcemod_extension_symbols::doit();
 			match rust_sdk_on_load(late) {
 				Ok(_) => true,
 				Err(e) => {

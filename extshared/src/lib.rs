@@ -11,7 +11,7 @@ use std::ptr::NonNull;
 
 pub mod ICellArray;
 pub mod IFileObject;
-pub mod export_GetSMExtAPI;
+pub mod export_sourcemod_extension_symbols;
 pub mod smext_conf_boilerplate;
 
 /*

@@ -376,6 +376,7 @@ pub fn smext_build() -> cc::Build {
 			.define("_LINUX", None)
 			.define("LINUX", None)
 			.define("GetSMExtAPI", "GetSMExtAPIxxx")
+			.define("CreateInterface_MMS", "CreateInterface_MMSxxx")
 			.define("POSIX", None);
 	}
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2022 rtldg <rtldg@protonmail.com>
+// Copyright 2022-2025 rtldg <rtldg@protonmail.com>
 // This file is part of srcwrtimer (https://github.com/srcwr/srcwrtimer/)
 
 use core::ffi::c_void;
@@ -9,6 +9,9 @@ unsafe extern "C" {
 	pub fn GetSMExtAPIxxx() -> *const c_void;
 	#[cfg(target_os = "windows")]
 	pub fn GetSMExtAPI() -> *const c_void;
+
+	#[cfg(target_os = "linux")]
+	pub fn CreateInterface_MMSxxx(mvi: *const c_void, mli: *const c_void) -> *const c_void;
 }
 
 /// This is our hack to "re-export" GetSMExtAPI from smsdk_ext.cpp...
@@ -19,6 +22,12 @@ unsafe extern "C" {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn GetSMExtAPI() -> *const c_void {
 	unsafe { GetSMExtAPIxxx() }
+}
+
+#[cfg(target_os = "linux")]
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn CreateInterface_MMS(mvi: *const c_void, mli: *const c_void) -> *const c_void {
+	unsafe { CreateInterface_MMSxxx(mvi, mli) }
 }
 
 /// We have to call this so the symbol won't be optimized out...
