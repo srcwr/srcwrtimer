@@ -17,6 +17,7 @@ env:
 jobs:
   build_everything:
     runs-on: windows-latest
+    timeout-minutes: 25
     strategy:
       matrix:
         targetos: ["linux", "windows"]
