@@ -41,17 +41,6 @@ We could also look into an arena and then store the string slices in a Vec:
 	https://docs.rs/typed-arena/latest/typed_arena/struct.Arena.html#method.alloc_str
 */
 
-pub struct SmolStringList;
-
-#[unsafe(no_mangle)]
-pub extern "C" fn rust_handle_destroy_SmolStringList(object: &mut SmolStringList) {
-	//
-}
-#[unsafe(no_mangle)]
-pub extern "C" fn rust_handle_size_SmolStringList(object: &mut SmolStringList, size: &mut u32) -> bool {
-	false
-}
-
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_SRCWRUTIL_GetSHA1_File(fileobject: &mut IFileObject, buffer: *mut c_char) -> Option<NonZeroU32> {
 	let mut hasher = Sha1::new();

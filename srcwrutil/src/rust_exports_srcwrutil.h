@@ -5,13 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-struct SmolStringList;
-
 extern "C" {
-
-void rust_handle_destroy_SmolStringList(SmolStringList *object);
-
-bool rust_handle_size_SmolStringList(SmolStringList *object, uint32_t *size);
 
 uint32_t rust_SRCWRUTIL_GetSHA1_File(IFileObject *fileobject, char *buffer);
 

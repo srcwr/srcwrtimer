@@ -23,19 +23,14 @@
 #define TEST_STUFF 1
 
 
-HandleType_t g_SmolStringListType = 0;
 extern const sp_nativeinfo_t UtilNatives[];
 
 
 void MyExtension::OnHandleDestroy(HandleType_t type, void* object)
 {
-	if (type == g_SmolStringListType)
-		rust_handle_destroy_SmolStringList((SmolStringList*)object);
 }
 bool MyExtension::GetHandleApproxSize(HandleType_t type, void* object, unsigned int* size)
 {
-	if (type == g_SmolStringListType)
-		return rust_handle_size_SmolStringList((SmolStringList*)object, size);
 	return false;
 }
 
@@ -153,17 +148,6 @@ bool Extension_OnLoad(char* error, size_t maxlength)
 
 	sharesys->AddNatives(myself, UtilNatives);
 
-
-	g_SmolStringListType = g_pHandleSys->CreateType(
-		  "SmolStringList"
-		, &g_MyExtension
-		, 0
-		, NULL
-		, NULL
-		, myself->GetIdentity()
-		, NULL
-	);
-
 	return true;
 }
 
@@ -173,8 +157,6 @@ void Extension_OnUnload()
 	g_CDownloadListGenerate_SetStringTable_detour->Destroy();
 	g_CNavMesh_Load_detour->Destroy();
 	gameconfs->CloseGameConfigFile(g_GameConfig);
-
-	g_pHandleSys->RemoveType(g_SmolStringListType, myself->GetIdentity());
 }
 
 void Extension_OnAllLoaded() {}
