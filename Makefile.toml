@@ -7,16 +7,9 @@
 #   https://github.com/sagiegurari/duckscript
 #   https://github.com/sagiegurari/duckscript/blob/master/docs/sdk.md
 
-# Rust does not support Windows 7 since 1.78 (May 2024).
-#
-# They decided to move it to [Tier 3](https://doc.rust-lang.org/nightly/rustc/platform-support.html#tier-3) as i686-win7-windows-msvc.
-#   Maybe binaries available one day? https://blog.rust-lang.org/2024/02/26/Windows-7.html
-#     "Once these targets reach Tier 2 status, they will be available to use via rustup."
-#
+# Rust does not support Windows 7 since 1.78 (May 2024) and neither will I.
 # I don't care about non-NFOservers Windows game server providers.
-# NFOservers appears to use a Windows 10 -based server OS & build number 14393 which is probably Windows Server 2016.
-#
-# Windows 7 BTFO
+#   (NFOservers appears to use a Windows 10 -based server OS & build number 14393 which is probably Windows Server 2016.)
 
 
 [config]
@@ -93,7 +86,7 @@ HOSTZIGTOOLCHAIN = { source = "${OS}", default_value = "x86_64-linux", mapping =
 
 MMBRANCH="1.12-dev" # Not always instep with SM versions.
 SMSHORTVER="1.12" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
-SMBINVER="sourcemod-1.12.0-git7210-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
+SMBINVER="sourcemod-1.12.0-git7212-${HOSTOSPLAIN}" ### UPDATE .github/workflows/build-everything.yml whenever this is updated.
 SMBINEXT = { source = "${OS}", default_value = "tar.gz", mapping = {"Windows_NT" = "zip"} }
 SPCOMP = { source = "${OS}", default_value = "spcomp64", mapping = {"Windows_NT" = "spcomp"} }
 

@@ -29,7 +29,7 @@ jobs:
       # checkout current repo...
       - uses: actions/checkout@v4
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.12
+        uses: cargo-bins/cargo-binstall@v1.15.6
       - name: Install the cargo bins we use...
         shell: pwsh
         run: |
@@ -44,7 +44,7 @@ jobs:
       - name: Setup SourcePawn Compiler
         uses: rumblefrog/setup-sp@v1.2.4
         with:
-          version: '1.12.7210' ### UPDATE Makefile.toml whenever this is updated.
+          version: '1.12.7212' ### UPDATE Makefile.toml whenever this is updated.
       - name: Setup Zig
         uses: mlugg/setup-zig@v1
         with:
