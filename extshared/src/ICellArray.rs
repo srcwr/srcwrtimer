@@ -19,7 +19,7 @@ unsafe extern "C" {
 	// TODO: We could look into using a cpp crate to call these or perhaps do some vtable shenanigans...
 	pub fn ICellArray_resize(cellarray: *mut ICellArray, count: usize) -> bool;
 	pub fn ICellArray_push(cellarray: *mut ICellArray) -> *mut c_char;
-	pub fn ICellArray_at(cellarray: *mut ICellArray, index: usize) -> *mut c_char;
+	pub fn ICellArray_at(cellarray: *const ICellArray, index: usize) -> *mut c_char;
 	pub fn ICellArray_PushString(cellarray: *mut ICellArray, s: *const u8, len: usize) -> isize;
 }
 

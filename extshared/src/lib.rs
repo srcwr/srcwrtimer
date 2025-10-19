@@ -5,6 +5,7 @@
 #![allow(non_snake_case)]
 
 use core::ffi::c_void;
+use std::ffi::CStr;
 use std::ffi::c_char;
 use std::io::Write;
 use std::ptr::NonNull;
@@ -26,6 +27,15 @@ pub const COPYBACK: i32 = 1 << 0;
 pub const STR_UTF8: i32 = 1 << 0;
 pub const STR_COPY: i32 = 1 << 1;
 pub const STR_BINARY: i32 = 1 << 2;
+
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub enum PathType {
+	Path_None = 0,
+	Path_Game,
+	Path_SM,
+	Path_SM_Rel,
+}
 
 pub type GameFrameHookFunc = unsafe extern "C" fn(simulating: bool);
 pub type FrameActionFunc = unsafe extern "C" fn(data: *mut c_void);
@@ -56,6 +66,16 @@ unsafe extern "C" {
 
 	pub fn cpp_local_to_phys_addr(ctx: NonNull<c_void>, addr: i32) -> *mut u8;
 	pub fn cpp_string_to_local_utf8(ctx: NonNull<c_void>, addr: i32, maxbytes: usize, s: *const u8) -> usize;
+
+	pub fn cpp_build_path(buf: *mut u8, bufsize: usize, friendly_path: *const u8, ty: PathType);
+}
+
+pub fn build_path(friendly_path: *const u8, ty: PathType) -> String {
+	let mut buf: [u8; 260] = [0; 260];
+	unsafe {
+		cpp_build_path(buf.as_mut_ptr(), buf.len(), friendly_path, ty);
+	}
+	CStr::from_bytes_until_nul(&buf).unwrap().to_str().unwrap().to_owned()
 }
 
 // I don't want to allocate a String/CString to print an error...
