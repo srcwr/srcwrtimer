@@ -23,6 +23,7 @@ rustflags = [
 	"-Cforce-frame-pointers=yes",
 ]
 [target.i686-pc-windows-msvc]
+linker = "rust-lld.exe"
 rustflags = [
 	# 2025... we can rely on CPUs to be using SSE2... not that it will likely change much in codegen...
 	"-Ctarget-feature=+sse2",
@@ -41,6 +42,7 @@ rustflags = [
 	"-Cforce-frame-pointers=yes",
 ]
 [target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"
 rustflags = [
 	# FUCK YOU TO PEOPLE WITH OLD CPUS
 	"-Ctarget-cpu=x86-64-v2",
