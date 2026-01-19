@@ -17,6 +17,6 @@ public:
 	virtual unsigned int GetInterfaceVersion() = 0;
 	virtual const char *GetInterfaceName() = 0;
 public:
-	virtual Handle_t MakeJSONObject(IPluginContext* ctx, const char* s, int len);
-	virtual void* GetUnsafePointer(IPluginContext* ctx, cell_t handy);
+	virtual Handle_t MakeJSONObject(IPluginContext* ctx, const char* s, int len) = 0;
+	virtual void* GetUnsafePointer(IPluginContext* ctx, cell_t handy) = 0;
 };
