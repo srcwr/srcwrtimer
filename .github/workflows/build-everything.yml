@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA::7}" >> $GITHUB_ENV
       # checkout current repo...
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@main
       - name: Install the cargo bins we use...
@@ -43,13 +43,13 @@ jobs:
       - name: Clone alliedmodders repositories
         run: cargo make clone-alliedmodders
       - name: Setup SourcePawn Compiler
-        uses: rumblefrog/setup-sp@v1.2.4
+        uses: rumblefrog/setup-sp@v1.3.0
         with:
-          version: '1.12.7221' ### UPDATE Makefile.toml whenever this is updated.
+          version: '1.12.7228' ### UPDATE Makefile.toml whenever this is updated.
       - name: Setup Zig
-        uses: mlugg/setup-zig@v1
+        uses: mlugg/setup-zig@v2
         with:
-          version: '0.13.0' ### UPDATE Makefile.toml whenever this is updated.
+          version: '0.16.0' ### UPDATE Makefile.toml whenever this is updated.
       - name: Build extensions
         run: cargo make --profile ${{ matrix.targetbits }} ${{ matrix.targetos }}
       - name: Copy things to _package
