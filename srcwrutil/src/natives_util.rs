@@ -43,9 +43,9 @@ We could also look into an arena and then store the string slices in a Vec:
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_SRCWRUTIL_GetSHA1_File(fileobject: &mut IFileObject, buffer: *mut c_char) -> Option<NonZeroU32> {
-	let mut hasher = Sha1::new();
+	let mut hasher = digest_io::IoWrapper(Sha1::new());
 	if let Ok(bytes) = std::io::copy(fileobject, &mut hasher) {
-		let result = hasher.finalize();
+		let result = hasher.0.finalize();
 		let buffer = unsafe { std::slice::from_raw_parts_mut(buffer as *mut _, 40) };
 		hex::encode_to_slice(result, buffer).unwrap();
 		NonZeroU32::new(bytes as u32)
@@ -58,9 +58,9 @@ pub extern "C" fn rust_SRCWRUTIL_GetSHA1_File(fileobject: &mut IFileObject, buff
 pub extern "C" fn rust_SRCWRUTIL_GetSHA1_FilePath(filename: *const c_char, buffer: *mut c_char) -> Option<NonZeroU32> {
 	let filename = extshared::strxx(filename, false, 0)?;
 	let mut file = std::fs::File::open(filename).ok()?;
-	let mut hasher = Sha1::new();
+	let mut hasher = digest_io::IoWrapper(Sha1::new());
 	if let Ok(bytes) = std::io::copy(&mut file, &mut hasher) {
-		let result = hasher.finalize();
+		let result = hasher.0.finalize();
 		let buffer = unsafe { std::slice::from_raw_parts_mut(buffer as *mut _, 40) };
 		hex::encode_to_slice(result, buffer).unwrap();
 		NonZeroU32::new(bytes as u32)

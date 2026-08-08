@@ -250,18 +250,13 @@ pub fn link_sm_detours(mainbuild: &mut cc::Build) {
 }
 
 pub fn smext_build() -> cc::Build {
-	let buildinfo = vergen_gitcl::Build::default()
-		.use_local(false)
-		.build_date(true)
-		.build()
-		.unwrap();
-	let gitinfo = vergen_gitcl::Gitcl::default()
+	let buildinfo = vergen_gitcl::Build::builder().use_local(false).build_date(true).build();
+	let gitinfo = vergen_gitcl::Gitcl::builder()
 		.branch(true)
 		.dirty(true)
 		.sha(true)
 		//.commit_date(true)
-		.build()
-		.unwrap();
+		.build();
 	vergen_gitcl::Emitter::default()
 		.add_instructions(&buildinfo)
 		.unwrap()

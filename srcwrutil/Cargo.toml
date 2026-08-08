@@ -15,6 +15,7 @@ crate-type = ["cdylib"]
 extshared_build_helper.workspace = true
 
 [dependencies]
+digest-io = "0.1.0"
 extshared.workspace = true
 hex = "0.4"
 libc = "0.2"
