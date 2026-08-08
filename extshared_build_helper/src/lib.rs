@@ -16,10 +16,6 @@ fn file2<P: AsRef<std::path::Path>>(build: &mut cc::Build, p: P) -> &mut cc::Bui
 }
 */
 
-use vergen_gitcl::BuildBuilder;
-use vergen_gitcl::Emitter;
-use vergen_gitcl::GitclBuilder;
-
 static SRCWRTIMER_ROOT_DIR: std::sync::LazyLock<String> =
 	std::sync::LazyLock::new(|| std::env::var("SRCWRTIMER_ROOT_DIR").unwrap());
 static IS_X64: std::sync::LazyLock<bool> =
@@ -254,15 +250,19 @@ pub fn link_sm_detours(mainbuild: &mut cc::Build) {
 }
 
 pub fn smext_build() -> cc::Build {
-	let buildinfo = BuildBuilder::default().use_local(false).build_date(true).build().unwrap();
-	let gitinfo = GitclBuilder::default()
+	let buildinfo = vergen_gitcl::Build::default()
+		.use_local(false)
+		.build_date(true)
+		.build()
+		.unwrap();
+	let gitinfo = vergen_gitcl::Gitcl::default()
 		.branch(true)
 		.dirty(true)
 		.sha(true)
 		//.commit_date(true)
 		.build()
 		.unwrap();
-	Emitter::default()
+	vergen_gitcl::Emitter::default()
 		.add_instructions(&buildinfo)
 		.unwrap()
 		.add_instructions(&gitinfo)
